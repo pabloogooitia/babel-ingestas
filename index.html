@@ -3,84 +3,11 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas — Cines Babel · v1.12.4</title>
+  <title>Ingestas — Cines Babel · v1.14</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><text y='32' font-size='32'>🎬</text></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* ── PASSWORD SCREEN ── */
-    #lockScreen {
-      position: fixed; inset: 0; z-index: 9999;
-      background: #141c2e;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-    #lockScreen.hidden { display: none; }
-    .lock-box {
-      background: #1e2636;
-      border: 1px solid #252d3d;
-      border-radius: 18px;
-      padding: 40px 36px;
-      width: 340px;
-      box-shadow: 0 24px 64px rgba(0,0,0,0.4);
-      text-align: center;
-    }
-    .lock-icon {
-      width: 52px; height: 52px;
-      background: linear-gradient(135deg, #3f7ff0, #6fa8ff);
-      border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.4rem; margin: 0 auto 20px;
-      box-shadow: 0 4px 16px rgba(63,127,240,0.4);
-    }
-    .lock-title {
-      font-size: 1rem; font-weight: 800;
-      color: #e8edf8; margin-bottom: 4px;
-    }
-    .lock-subtitle {
-      font-size: 0.72rem; color: #6b7a99;
-      margin-bottom: 24px; line-height: 1.5;
-    }
-    .lock-input {
-      width: 100%; padding: 10px 14px;
-      border: 1.5px solid #252d3d; border-radius: 10px;
-      background: #141c2e; color: #e8edf8;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 0.88rem; font-weight: 500;
-      outline: none; text-align: center;
-      letter-spacing: 0.08em;
-      transition: border-color 0.15s, box-shadow 0.15s;
-      margin-bottom: 12px;
-    }
-    .lock-input:focus {
-      border-color: #3f7ff0;
-      box-shadow: 0 0 0 3px rgba(63,127,240,0.15);
-    }
-    .lock-input.error {
-      border-color: #f87171;
-      box-shadow: 0 0 0 3px rgba(248,113,113,0.15);
-      animation: shake 0.3s ease;
-    }
-    @keyframes shake {
-      0%,100% { transform: translateX(0); }
-      25% { transform: translateX(-6px); }
-      75% { transform: translateX(6px); }
-    }
-    .lock-btn {
-      width: 100%; padding: 10px;
-      background: #3f7ff0; color: #fff;
-      border: none; border-radius: 10px;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 0.82rem; font-weight: 700;
-      cursor: pointer; transition: opacity 0.15s, box-shadow 0.15s;
-      box-shadow: 0 4px 14px rgba(63,127,240,0.35);
-    }
-    .lock-btn:hover { opacity: 0.9; box-shadow: 0 6px 18px rgba(63,127,240,0.45); }
-    .lock-error {
-      font-size: 0.68rem; color: #f87171;
-      margin-top: 10px; min-height: 18px;
-    }
-
-    /* ════════════════════════════════════════ */
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -630,6 +557,18 @@
     }
     .btn-help:hover { background: rgba(255,255,255,0.13); color: rgba(255,255,255,0.95); }
 
+    .debug-panel {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 14px; margin-top: 4px;
+      font-size: 0.72rem; color: var(--text2); line-height: 1.8;
+    }
+    .debug-panel strong { color: var(--text); }
+    .debug-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: #34d399; margin-right: 5px; vertical-align: middle;
+    }
+    .debug-dot.offline { background: var(--text3); }
+
     /* ── MODAL ── */
     .modal-overlay {
       display: none; position: fixed; inset: 0;
@@ -692,20 +631,6 @@
 </head>
 <body>
 
-<div id="lockScreen">
-  <div class="lock-box">
-    <div class="lock-icon">🎬</div>
-    <div class="lock-title">Cines Babel · Ingestas</div>
-    <div class="lock-subtitle">Herramienta de uso interno.<br>Introduce la contraseña para continuar.</div>
-    <input class="lock-input" id="lockInput" type="password"
-      placeholder="Contraseña"
-      onkeydown="if(event.key==='Enter')checkPassword()"/>
-    <button class="lock-btn" onclick="checkPassword()">Entrar</button>
-    <div class="lock-error" id="lockError"></div>
-    <div style="margin-top:20px;font-size:0.6rem;color:rgba(255,255,255,0.15);letter-spacing:0.08em;">v1.12.4</div>
-  </div>
-</div>
-
 <div class="header">
   <div class="header-left">
     <div class="header-icon">🎬</div>
@@ -724,7 +649,7 @@
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
       Guardar
     </button>
-    <button class="btn-config" onclick="openConfig()">⚙ Google Sheets</button>
+    <button class="btn-config" onclick="openConfig()">⚙ Supabase</button>
     <button class="btn-help" onclick="openHelp()">? Ayuda</button>
     <div class="theme-toggle" onclick="toggleTheme()" title="Modo claro/oscuro"></div>
   </div>
@@ -837,7 +762,7 @@
       <div class="help-section">
         <div class="help-section-title">¿Para qué sirve esta lista?</div>
         <p>Esta herramienta permite llevar el control de las ingestas de películas en Cines Babel. Cada fila representa una película recibida, e indica en qué salas ha sido copiada y su estado actual.</p>
-        <p>Los datos se sincronizan con Google Sheets, lo que permite que todos los ordenadores del cine vean la misma información en tiempo real.</p>
+        <p>Los datos se sincronizan con Supabase, lo que permite que todos los ordenadores del cine vean la misma información en tiempo real.</p>
       </div>
 
       <div class="help-section">
@@ -914,7 +839,17 @@
 
         <div class="help-row" style="margin-top:10px;">
           <span style="font-size:0.82rem;margin-top:1px;">⚙</span>
-          <span><strong style="color:var(--text);">Google Sheets</strong> — Conecta la lista con una hoja de cálculo para sincronizar datos entre ordenadores. Solo hay que configurarlo una vez.</span>
+          <span><strong style="color:var(--text);">Supabase</strong> — Base de datos en la nube que sincroniza los datos entre todos los ordenadores en tiempo real. Solo hay que configurarlo una vez.</span>
+        </div>
+      </div>
+
+      <hr class="help-divider"/>
+
+      <!-- DEBUG -->
+      <div class="help-section">
+        <div class="help-section-title">🛠 Debug — Sesiones activas</div>
+        <div class="debug-panel" id="debugPanel">
+          <span id="debugStatus">Conectando…</span>
         </div>
       </div>
 
@@ -923,7 +858,7 @@
       <!-- CRÉDITOS -->
       <div class="help-credits">
         <strong>Lista de Ingestas — Cines Babel</strong><br>
-        Versión actual: <strong>v1.12.4</strong><br>
+        Versión actual: <strong>v1.14</strong><br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -933,17 +868,31 @@
 
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
-    <h2>Conectar con Google Sheets</h2>
-    <p>Los datos se guardarán en una hoja de cálculo de Google y estarán disponibles en todos los ordenadores en tiempo real.</p>
+    <h2>Conectar con Supabase</h2>
+    <p>Los datos se guardarán en Supabase y estarán disponibles en todos los ordenadores en tiempo real.</p>
     <div class="modal-hint">
-      <strong>Pasos para configurar:</strong><br>
-      1. Ve a <a href="https://sheets.google.com" target="_blank">sheets.google.com</a> y crea una hoja nueva.<br>
-      2. Ve a <strong>Extensiones → Apps Script</strong>, pega el script proporcionado y despliega como web app.<br>
-      3. Copia la URL del web app y pégala abajo.
+      Los datos están en <strong>supabase.com → babel-ingestas</strong>.<br>
+      Solo necesitas la URL del proyecto y la clave anon.
     </div>
     <div class="form-row">
-      <label>URL del Web App (Apps Script)</label>
-      <input type="text" id="inputWebAppUrl" placeholder="https://script.google.com/macros/s/…/exec"/>
+      <label>Nombre de este ordenador</label>
+      <input type="text" id="inputDeviceName" placeholder="Ej: PC Taquilla 01" list="deviceList"/>
+      <datalist id="deviceList">
+        <option value="Macbook Air de Pablo"/>
+        <option value="PC Taquilla 01"/>
+        <option value="PC Taquilla 02"/>
+        <option value="Portátil HP"/>
+        <option value="Portátil Acer"/>
+        <option value="PC Vero"/>
+      </datalist>
+    </div>
+    <div class="form-row">
+      <label>Project URL</label>
+      <input type="text" id="inputSupabaseUrl" placeholder="https://xxxx.supabase.co"/>
+    </div>
+    <div class="form-row">
+      <label>Anon Key</label>
+      <input type="text" id="inputSupabaseKey" placeholder="eyJ…"/>
     </div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeConfig()">Cancelar</button>
@@ -955,43 +904,9 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>v1.12.4 · Diseño por Pablo Goitia</footer>
+<footer>v1.14 · Diseño por Pablo Goitia</footer>
 
 <script>
-// ─── PASSWORD ─────────────────────────────────
-const PASS_HASH = "160707631d6ce3c72d9d7047a4174ee934c7f0a1a0c95e418740213606fda558";
-
-async function hashString(str) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
-}
-
-async function checkPassword() {
-  const input = document.getElementById("lockInput");
-  const error = document.getElementById("lockError");
-  const hash  = await hashString(input.value);
-  if (hash === PASS_HASH) {
-    sessionStorage.setItem("auth", "1");
-    document.getElementById("lockScreen").classList.add("hidden");
-    input.value = "";
-    error.textContent = "";
-  } else {
-    input.classList.add("error");
-    error.textContent = "Contraseña incorrecta.";
-    setTimeout(() => input.classList.remove("error"), 400);
-    input.value = "";
-    input.focus();
-  }
-}
-
-function initAuth() {
-  if (sessionStorage.getItem("auth") === "1") {
-    document.getElementById("lockScreen").classList.add("hidden");
-  } else {
-    setTimeout(() => document.getElementById("lockInput").focus(), 100);
-  }
-}
-
 // ─── THEME ────────────────────────────────────
 function toggleTheme() {
   document.body.classList.toggle('dark');
@@ -1136,7 +1051,135 @@ function matchesSearch(row) {
 }
 
 // ─── CONFIG ───────────────────────────────────
-let webAppUrl = localStorage.getItem("sheets_url") || "";
+// ─── SUPABASE CONFIG ──────────────────────────
+let supabaseUrl = localStorage.getItem("supabase_url") || "";
+let supabaseKey = localStorage.getItem("supabase_key") || "";
+let supabaseClient = null;
+let realtimeChannel = null;
+let presenceChannel = null;
+
+// Unique session ID for this browser tab
+const SESSION_ID   = Math.random().toString(36).slice(2, 10).toUpperCase();
+const SESSION_NAME = localStorage.getItem("device_name") || ("PC-" + SESSION_ID);
+
+function initSupabase() {
+  if (!supabaseUrl || !supabaseKey) return;
+  try {
+    supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+    setupRealtime();
+    setupPresence();
+  } catch(e) {
+    console.error("Supabase init error:", e);
+  }
+}
+
+// ─── REALTIME ─────────────────────────────────
+function setupRealtime() {
+  if (!supabaseClient) return;
+  if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
+
+  realtimeChannel = supabaseClient
+    .channel("peliculas-changes")
+    .on("postgres_changes", { event: "*", schema: "public", table: "peliculas" }, (payload) => {
+      if (hasPendingChanges) return; // never overwrite while editing
+      handleRealtimeChange(payload);
+    })
+    .subscribe();
+}
+
+function handleRealtimeChange(payload) {
+  const { eventType, new: newRecord, old: oldRecord } = payload;
+
+  if (eventType === "DELETE") {
+    const deletedId = oldRecord.row_id;
+    rows = rows.filter(r => r.id !== deletedId);
+    if (!rows.some(r => r.isEmpty)) addEmptyRow();
+    saveLocal(); render(); return;
+  }
+
+  const mapped = mapSupabaseRow(newRecord);
+
+  if (eventType === "INSERT") {
+    // Only add if not already present
+    if (!rows.find(r => r.id === mapped.id)) {
+      rows.unshift(mapped);
+      if (!rows.some(r => r.isEmpty)) addEmptyRow();
+    }
+  } else if (eventType === "UPDATE") {
+    const idx = rows.findIndex(r => r.id === mapped.id);
+    if (idx !== -1) {
+      // Don't update if user is currently editing this row
+      const focused = document.activeElement;
+      const rowEl = document.querySelector(`tr[data-id="${mapped.id}"]`);
+      if (rowEl && rowEl.contains(focused)) return;
+      rows[idx] = mapped;
+    } else {
+      rows.unshift(mapped);
+    }
+  }
+  saveLocal(); render();
+}
+
+function mapSupabaseRow(r) {
+  return migrateRow({
+    id:           r.row_id,
+    pelicula:     r.pelicula      || "",
+    archivo:      r.archivo       || "",
+    notas:        r.notas         || "",
+    fmt:          r.fmt           || 0,
+    otroText:     r.otro_text     || "",
+    fmt2:         r.fmt2          || 0,
+    fmt2OtroText: r.fmt2otrotext  || "",
+    enc:          r.enc           || 0,
+    proj:         r.proj          || [0,0,0,0,0],
+    projErr:      r.projerr       || ["","","","",""],
+    date:         r.date          || null,
+    isEmpty:      false,
+  });
+}
+
+// ─── PRESENCE ─────────────────────────────────
+let connectedSessions = {};
+
+function setupPresence() {
+  if (!supabaseClient) return;
+  if (presenceChannel) supabaseClient.removeChannel(presenceChannel);
+
+  presenceChannel = supabaseClient.channel("presence-ingestas", {
+    config: { presence: { key: SESSION_ID } }
+  });
+
+  presenceChannel
+    .on("presence", { event: "sync" }, () => {
+      const state = presenceChannel.presenceState();
+      connectedSessions = state;
+      updateDebugPanel();
+    })
+    .subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        await presenceChannel.track({
+          session_id: SESSION_ID,
+          name:       SESSION_NAME,
+          joined_at:  new Date().toISOString(),
+        });
+      }
+    });
+}
+
+function updateDebugPanel() {
+  const el = document.getElementById("debugStatus");
+  if (!el) return;
+  const sessions = Object.values(connectedSessions).flat();
+  const count = sessions.length;
+  if (count === 0) {
+    el.innerHTML = '<span class="debug-dot offline"></span> Sin sesiones detectadas';
+    return;
+  }
+  const list = sessions.map(s =>
+    `<span class="debug-dot"></span> <strong>${s.name || s.session_id}</strong> — conectado desde ${new Date(s.joined_at).toLocaleTimeString("es-ES")}`
+  ).join("<br>");
+  el.innerHTML = `<strong>${count} sesión${count !== 1 ? "es" : ""} activa${count !== 1 ? "s" : ""}:</strong><br>${list}`;
+}
 
 // ─── CONSTANTS ────────────────────────────────
 const FMT_STATES = [
@@ -1165,7 +1208,6 @@ const LONG_PRESS_MS = 600;
 
 let rows      = [];
 let nextId    = 1;
-let saveTimer = null;
 
 function deduplicateRows(rowList) {
   const seen = {};
@@ -1219,89 +1261,146 @@ function setSyncStatus(state, text) {
   }
 }
 
-async function syncToSheets() {
-  if (!webAppUrl) return;
-  setSyncStatus("syncing","Guardando…");
-
-  // Deduplicate rows in memory before sending
-  const seen = {};
-  rows.filter(r => !r.isEmpty).forEach(row => {
-    const id = row.id;
-    if (!seen[id]) {
-      seen[id] = row;
-    } else {
-      const scoreNew = row.proj.filter(p => p === 2).length + (row.archivo ? 1 : 0) + (row.enc > 0 ? 1 : 0) + (row.notas ? 1 : 0);
-      const scoreOld = seen[id].proj.filter(p => p === 2).length + (seen[id].archivo ? 1 : 0) + (seen[id].enc > 0 ? 1 : 0) + (seen[id].notas ? 1 : 0);
-      if (scoreNew > scoreOld) seen[id] = row;
-    }
-  });
-  const cleanRows = Object.values(seen).sort((a, b) => new Date(b.date) - new Date(a.date));
-
-  try {
-    await fetch(webAppUrl, {
-      method:"POST", mode:"no-cors",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ action:"save", rows: cleanRows }),
-    });
-    // Update local rows with clean version
-    const emptyRows = rows.filter(r => r.isEmpty);
-    rows = [...emptyRows, ...cleanRows];
-    saveLocal();
-    setSyncStatus("synced","Guardado ✓");
-  } catch(e) {
-    setSyncStatus("error","Error al guardar");
-    showToast("⚠ No se pudo guardar en Sheets. Datos guardados localmente.");
-  }
-}
-
-async function loadFromSheets() {
-  if (!webAppUrl) { loadLocal(); return; }
-  // Never overwrite unsaved changes with remote data
-  if (hasPendingChanges) return;
-  setSyncStatus("syncing","Cargando…");
-  try {
-    const res  = await fetch(webAppUrl + "?action=load");
-    const data = await res.json();
-    if (data && Array.isArray(data.rows)) {
-      const migrated = data.rows.map(migrateRow);
-      rows   = deduplicateRows(migrated.filter(r => !r.isEmpty));
-      nextId = Math.max(...rows.map(r => r.id || 0), 0) + 1;
-      if (!rows.some(r => r.isEmpty)) addEmptyRow();
-      setSyncStatus("synced","Conectado ✓");
-      render(); saveLocal();
-    } else { throw new Error("bad response"); }
-  } catch(e) {
-    loadLocal();
-    setSyncStatus("error","Sin conexión — modo local");
-    showToast("⚠ No se pudo conectar con Sheets. Usando datos locales.");
-  }
-}
-
-function scheduleSave() {
-  saveLocal();
-  if (!webAppUrl) return;
-  setPendingState();
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(syncToSheets, 60000);
-}
-
+// ─── SYNC ─────────────────────────────────────
 let hasPendingChanges = false;
+let saveTimer = null;
+let pendingRowIds = new Set(); // Track which rows changed
+
+function setSyncStatus(state, text) {
+  document.getElementById("syncDot").className = "sync-dot " + state;
+  document.getElementById("syncText").textContent = text;
+  if (state === "synced" || state === "error") {
+    document.getElementById("btnSave").classList.remove("has-changes");
+    hasPendingChanges = false;
+    pendingRowIds.clear();
+  }
+}
 
 function setPendingState() {
   hasPendingChanges = true;
+  if (!supabaseUrl || !supabaseKey) return;
   document.getElementById("syncDot").className = "sync-dot pending";
   document.getElementById("syncText").textContent = "Cambios sin guardar";
   document.getElementById("btnSave").classList.add("has-changes");
 }
 
-function clearPendingState() {
-  hasPendingChanges = false;
+function rowToRecord(r) {
+  return {
+    row_id:       r.id,
+    pelicula:     r.pelicula     || "",
+    archivo:      r.archivo      || "",
+    notas:        r.notas        || "",
+    fmt:          r.fmt          || 0,
+    otro_text:    r.otroText     || "",
+    fmt2:         r.fmt2         || 0,
+    fmt2otrotext: r.fmt2OtroText || "",
+    enc:          r.enc          || 0,
+    proj:         r.proj         || [0,0,0,0,0],
+    projerr:      r.projErr      || ["","","","",""],
+    date:         r.date         || new Date().toISOString(),
+  };
+}
+
+// Save only the rows that actually changed
+async function syncToSheets() {
+  if (!supabaseUrl || !supabaseKey) return;
+  setSyncStatus("syncing", "Guardando…");
+
+  const changedIds = new Set(pendingRowIds);
+  const filledRows = rows.filter(r => !r.isEmpty);
+
+  // Determine deleted rows (ids in Supabase but not in our list)
+  // We do a full upsert of changed rows + delete removed ones
+  const toUpsert = filledRows
+    .filter(r => changedIds.size === 0 || changedIds.has(r.id))
+    .map(rowToRecord);
+
+  try {
+    if (toUpsert.length > 0) {
+      const res = await fetch(`${supabaseUrl}/rest/v1/peliculas`, {
+        method: "POST",
+        headers: {
+          "Content-Type":  "application/json",
+          "apikey":        supabaseKey,
+          "Authorization": `Bearer ${supabaseKey}`,
+          "Prefer":        "resolution=merge-duplicates",
+        },
+        body: JSON.stringify(toUpsert),
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+    }
+
+    // Delete rows removed from the list
+    const activeIds = filledRows.map(r => r.id);
+    if (activeIds.length > 0) {
+      await fetch(`${supabaseUrl}/rest/v1/peliculas?row_id=not.in.(${activeIds.join(",")})`, {
+        method: "DELETE",
+        headers: {
+          "apikey":        supabaseKey,
+          "Authorization": `Bearer ${supabaseKey}`,
+        },
+      });
+    } else {
+      // Delete all if list is empty
+      await fetch(`${supabaseUrl}/rest/v1/peliculas`, {
+        method: "DELETE",
+        headers: {
+          "apikey":        supabaseKey,
+          "Authorization": `Bearer ${supabaseKey}`,
+        },
+      });
+    }
+
+    saveLocal();
+    setSyncStatus("synced", "Guardado ✓");
+  } catch(e) {
+    setSyncStatus("error", "Error al guardar");
+    showToast("⚠ No se pudo guardar en Supabase. Datos guardados localmente.");
+  }
+}
+
+// Initial full load from Supabase
+async function loadFromSheets() {
+  if (!supabaseUrl || !supabaseKey) { loadLocal(); return; }
+  if (hasPendingChanges) return;
+  setSyncStatus("syncing", "Cargando…");
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/peliculas?select=*&order=date.desc`, {
+      headers: {
+        "apikey":        supabaseKey,
+        "Authorization": `Bearer ${supabaseKey}`,
+      },
+    });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    if (Array.isArray(data)) {
+      const mapped = data.map(mapSupabaseRow);
+      rows   = deduplicateRows(mapped);
+      nextId = Math.max(...rows.map(r => r.id || 0), 0) + 1;
+      if (!rows.some(r => r.isEmpty)) addEmptyRow();
+      setSyncStatus("synced", "Conectado ✓");
+      render(); saveLocal();
+    } else { throw new Error("bad response"); }
+  } catch(e) {
+    loadLocal();
+    setSyncStatus("error", "Sin conexión — modo local");
+    showToast("⚠ No se pudo conectar con Supabase. Usando datos locales.");
+  }
+}
+
+function scheduleSave(rowId) {
+  saveLocal();
+  if (!supabaseUrl || !supabaseKey) return;
+  if (rowId !== undefined) pendingRowIds.add(rowId);
+  setPendingState();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(syncToSheets, 10000); // 10s autoguardado
 }
 
 function saveNow() {
   clearTimeout(saveTimer);
-  if (webAppUrl) syncToSheets();
-  else showToast("💾 Guardado localmente (sin conexión a Sheets)");
+  if (supabaseUrl && supabaseKey) syncToSheets();
+  else showToast("💾 Guardado localmente");
 }
 
 // ─── ROW HELPERS ──────────────────────────────
@@ -1498,7 +1597,7 @@ function cycleProj(id, idx) {
   } else {
     row.proj[idx] = (row.proj[idx] + 1) % 3;
   }
-  render(); scheduleSave();
+  render(); scheduleSave(id);
 }
 
 function activateError(id, idx) {
@@ -1506,7 +1605,7 @@ function activateError(id, idx) {
   if (!row) return;
   row.proj[idx] = 3;
   if (!row.projErr) row.projErr = ["","","","",""];
-  render(); scheduleSave();
+  render(); scheduleSave(id);
 }
 
 function updateErrNote(id, idx, value) {
@@ -1514,7 +1613,7 @@ function updateErrNote(id, idx, value) {
   if (!row) return;
   if (!row.projErr) row.projErr = ["","","","",""];
   row.projErr[idx] = value;
-  scheduleSave();
+  scheduleSave(id);
 }
 
 // ─── PELICULA ─────────────────────────────────
@@ -1523,7 +1622,7 @@ function typingPelicula(id, value) {
   if (!row) return;
   row.pelicula = value;
   // Mark pending immediately so auto-reload doesn't overwrite while typing
-  if (webAppUrl) setPendingState();
+  if (supabaseUrl && supabaseKey) setPendingState();
 }
 
 function commitPelicula(id, value) {
@@ -1541,7 +1640,7 @@ function commitPelicula(id, value) {
     const empties = rows.filter(r => r.isEmpty);
     if (empties.length > 1) empties.slice(1).forEach(r => { rows = rows.filter(x => x.id !== r.id); });
   }
-  render(); scheduleSave();
+  render(); scheduleSave(id);
 }
 
 // ─── ENCRIPTACION ─────────────────────────────
@@ -1553,7 +1652,7 @@ function cycleEnc(id) {
     row.isEmpty = false; row.date = new Date().toISOString();
     if (!rows.some(r => r.isEmpty)) addEmptyRow();
   }
-  render(); scheduleSave();
+  render(); scheduleSave(id);
 }
 
 // ─── FORMATO (new) ────────────────────────────
@@ -1565,12 +1664,12 @@ function cycleFmt2(id) {
     row.isEmpty = false; row.date = new Date().toISOString();
     if (!rows.some(r => r.isEmpty)) addEmptyRow();
   }
-  render(); scheduleSave();
+  render(); scheduleSave(id);
 }
 
 function updateFmt2OtroText(id, value) {
   const row = rows.find(r => r.id === id);
-  if (row) { row.fmt2OtroText = value; scheduleSave(); }
+  if (row) { row.fmt2OtroText = value; scheduleSave(id); }
 }
 
 // ─── NOTAS ────────────────────────────────────
@@ -1580,7 +1679,7 @@ function handleNotasChange(id, input) {
   row.notas = input.value;
   if (input.value) input.classList.add("has-text");
   else input.classList.remove("has-text");
-  scheduleSave();
+  scheduleSave(id);
 }
 
 // ─── ARCHIVO ──────────────────────────────────
@@ -1590,7 +1689,7 @@ function handleArchivoChange(id, input) {
   row.archivo = input.value;
   if (input.value) input.classList.add("has-text");
   else input.classList.remove("has-text");
-  scheduleSave();
+  scheduleSave(id);
 }
 
 // ─── FORMAT ───────────────────────────────────
@@ -1602,18 +1701,18 @@ function cycleFmt(id) {
     row.isEmpty = false; row.date = new Date().toISOString();
     if (!rows.some(r => r.isEmpty)) addEmptyRow();
   }
-  render(); scheduleSave();
+  render(); scheduleSave(id);
 }
 
 function updateOtroText(id, value) {
   const row = rows.find(r => r.id === id);
-  if (row) { row.otroText = value; scheduleSave(); }
+  if (row) { row.otroText = value; scheduleSave(id); }
 }
 
 // ─── REMOVE / ADD ─────────────────────────────
 function removeRow(id) {
   rows = rows.filter(r => r.id !== id);
-  render(); scheduleSave();
+  render(); scheduleSave(undefined);
 }
 
 function manualAddRow() { addEmptyRow(); render(); }
@@ -1644,15 +1743,25 @@ function closeHelp() { document.getElementById("helpOverlay").classList.remove("
 
 // ─── MODAL ────────────────────────────────────
 function openConfig() {
-  document.getElementById("inputWebAppUrl").value = webAppUrl;
+  document.getElementById("inputDeviceName").value = localStorage.getItem("device_name") || "";
+  document.getElementById("inputSupabaseUrl").value = supabaseUrl;
+  document.getElementById("inputSupabaseKey").value = supabaseKey;
   document.getElementById("modalOverlay").classList.add("open");
 }
 function closeConfig() { document.getElementById("modalOverlay").classList.remove("open"); }
 function saveConfig() {
-  webAppUrl = document.getElementById("inputWebAppUrl").value.trim();
-  localStorage.setItem("sheets_url", webAppUrl);
+  const deviceName = document.getElementById("inputDeviceName").value.trim();
+  supabaseUrl = document.getElementById("inputSupabaseUrl").value.trim();
+  supabaseKey = document.getElementById("inputSupabaseKey").value.trim();
+  if (deviceName) localStorage.setItem("device_name", deviceName);
+  localStorage.setItem("supabase_url", supabaseUrl);
+  localStorage.setItem("supabase_key", supabaseKey);
   closeConfig();
-  if (webAppUrl) { showToast("Conectando con Google Sheets…"); loadFromSheets(); }
+  if (supabaseUrl && supabaseKey) {
+    showToast("Conectando con Supabase…");
+    initSupabase();
+    loadFromSheets();
+  }
 }
 
 // ─── POPOVER ──────────────────────────────────
@@ -1685,12 +1794,10 @@ document.addEventListener("keydown", (e) => {
 });
 
 // ─── INIT ─────────────────────────────────────
-initAuth();
 initTheme();
-if (webAppUrl) { setSyncStatus("syncing","Conectando…"); loadFromSheets(); }
-else           { setSyncStatus("local","Sin conectar");  loadLocal(); }
-
-setInterval(() => { if (webAppUrl) loadFromSheets(); }, 30000);
+initSupabase();
+if (supabaseUrl && supabaseKey) { setSyncStatus("syncing","Conectando…"); loadFromSheets(); }
+else                            { setSyncStatus("local","Sin conectar");  loadLocal(); }
 </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas — Cines Babel · v1.14.1</title>
+  <title>Ingestas — Cines Babel · v1.14.2</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><text y='32' font-size='32'>🎬</text></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -628,151 +628,122 @@
       color: var(--text3); user-select: none; letter-spacing: 0.04em;
     }
 
-    /* ── MOBILE RESPONSIVE ── */
+    /* ── MOBILE ── */
     @media (max-width: 768px) {
-      main { padding: 12px 12px 80px; }
-
-      /* Header compacto */
-      .header { padding: 12px 14px; }
-      h1 { font-size: 0.82rem; }
+      main { padding: 12px 12px 90px; }
+      .header { padding: 10px 12px; gap: 8px; }
+      h1 { font-size: 0.8rem; }
       .header-eyebrow { display: none; }
-      .counter { font-size: 0.58rem; padding: 2px 7px; }
-      .btn-config span, .btn-help span { display: none; }
       .sync-status { display: none; }
-
-      /* Buscador full width */
-      .search-wrap { flex-wrap: wrap; gap: 6px; padding: 10px 12px 8px; }
+      .counter { font-size: 0.56rem; padding: 2px 7px; }
+      .search-wrap { padding: 8px 12px; gap: 6px; }
       .search-inner { max-width: 100%; }
-      .btn-add-row { width: 100%; justify-content: center; }
-
-      /* Filtros en scroll horizontal */
-      .filter-bar { flex-wrap: nowrap; overflow-x: auto; padding: 7px 12px; gap: 5px; -webkit-overflow-scrolling: touch; }
+      .btn-add-row { order: 3; width: 100%; justify-content: center; margin-top: 0; }
+      .filter-bar { flex-wrap: nowrap; overflow-x: auto; padding: 6px 12px; -webkit-overflow-scrolling: touch; }
       .filter-bar::-webkit-scrollbar { display: none; }
       .filter-chip { white-space: nowrap; flex-shrink: 0; }
       .filter-sep { flex-shrink: 0; }
-
-      /* Ocultar tabla */
       .table-wrap { display: none; }
-
-      /* Mostrar tarjetas */
-      .cards-mobile { display: flex; flex-direction: column; gap: 10px; }
-
-      /* FAB añadir */
-      .fab-mobile {
-        position: fixed; bottom: 20px; right: 16px; z-index: 50;
-        width: 52px; height: 52px; border-radius: 50%;
-        background: var(--accent); color: #fff; border: none;
-        font-size: 1.5rem; font-weight: 700;
-        display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 6px 20px rgba(63,127,240,0.45);
-        cursor: pointer;
-      }
-
-      /* Tarjeta */
-      .card-mobile {
-        background: var(--surface); border: 1px solid var(--border);
-        border-radius: 14px; overflow: hidden;
-      }
-
-      .card-mobile-top {
-        display: flex; align-items: stretch;
-        border-bottom: 1px solid var(--border);
-      }
-      .card-mobile-date {
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        padding: 8px 10px; background: var(--surface2);
-        border-right: 1px solid var(--border);
-        min-width: 44px; flex-shrink: 0;
-      }
-      .card-mobile-date-day  { font-size: 0.6rem; font-weight: 700; color: var(--text2); }
-      .card-mobile-date-time { font-size: 0.55rem; color: var(--text3); }
-      .card-mobile-num {
-        display: flex; align-items: center; justify-content: center;
-        padding: 8px 6px; background: var(--surface2);
-        border-right: 1px solid var(--border);
-        min-width: 24px; flex-shrink: 0;
-        font-size: 0.55rem; font-weight: 700; color: var(--text3);
-      }
-      .card-mobile-title {
-        flex: 1; padding: 8px 10px;
-        display: flex; align-items: center; gap: 6px; min-width: 0;
-      }
-      .card-mobile-title input {
-        flex: 1; background: transparent; border: none;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-size: 0.88rem; font-weight: 600; color: var(--text);
-        outline: none; min-width: 0; padding: 2px 4px; border-radius: 6px;
-        transition: background 0.12s; user-select: text; -webkit-user-select: text;
-      }
-      .card-mobile-title input:focus { background: var(--focus-bg); }
-      .card-mobile-title input::placeholder { color: var(--text3); font-weight: 400; font-style: italic; }
-      .card-mobile-remove {
-        background: transparent; border: none; color: var(--text3);
-        font-size: 0.82rem; padding: 6px 8px; cursor: pointer; flex-shrink: 0;
-        transition: color 0.15s;
-      }
-      .card-mobile-remove:active { color: #ef4444; }
-
-      /* Badges fila */
-      .card-mobile-badges {
-        display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
-        padding: 7px 10px; border-bottom: 1px solid var(--border);
-      }
-      .card-badge-label {
-        font-size: 0.52rem; font-weight: 700; color: var(--text3);
-        text-transform: uppercase; letter-spacing: 0.08em;
-      }
-      .card-badge-sep { width: 1px; height: 12px; background: var(--border); }
-
-      /* Campos notas/archivo */
-      .card-mobile-fields {
-        display: grid; grid-template-columns: 1fr 1fr;
-        border-bottom: 1px solid var(--border);
-      }
-      .card-mobile-field {
-        padding: 7px 10px; border-right: 1px solid var(--border);
-      }
-      .card-mobile-field:last-child { border-right: none; }
-      .card-mobile-field-label {
-        font-size: 0.5rem; font-weight: 700; color: var(--text3);
-        text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px;
-      }
-      .card-mobile-field input {
-        background: transparent; border: none; color: var(--text2);
-        font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.76rem; font-weight: 500;
-        width: 100%; outline: none; padding: 0;
-        user-select: text; -webkit-user-select: text;
-      }
-      .card-mobile-field input:focus { color: var(--text); }
-      .card-mobile-field input::placeholder { color: var(--text3); font-weight: 400; }
-
-      /* Salas */
-      .card-mobile-salas {
-        display: flex; align-items: center;
-        padding: 8px 10px; gap: 6px; justify-content: space-around;
-      }
-      .card-mobile-sala {
-        display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1;
-      }
-      .card-mobile-sala-name {
-        font-size: 0.52rem; font-weight: 700; color: var(--text3);
-        text-transform: uppercase;
-      }
-      .card-mobile-sala .proj-btn {
-        width: 32px; height: 32px;
-      }
-      .card-mobile-sala .error-input {
-        width: 48px; font-size: 0.58rem;
-      }
-
-      /* Ocultar btn-add-row de abajo */
-      .btn-add-row-bottom { display: none; }
+      .cards-mobile { display: flex !important; flex-direction: column; gap: 10px; }
+      .fab-mobile { display: flex !important; }
     }
-
-    /* Desktop: ocultar elementos móvil */
     @media (min-width: 769px) {
       .cards-mobile { display: none; }
-      .fab-mobile { display: none; }
+      .fab-mobile { display: none !important; }
+    }
+
+    /* Tarjeta móvil */
+    .cards-mobile { display: none; }
+    .card-m {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+    }
+    .card-m-top {
+      display: flex; align-items: stretch;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-m-date {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 8px 9px; background: var(--surface2);
+      border-right: 1px solid var(--border); min-width: 42px; flex-shrink: 0;
+    }
+    .card-m-date span:first-child { font-size: 0.6rem; font-weight: 700; color: var(--text2); }
+    .card-m-date span:last-child  { font-size: 0.54rem; color: var(--text3); }
+    .card-m-num {
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 6px; background: var(--surface2);
+      border-right: 1px solid var(--border); min-width: 22px; flex-shrink: 0;
+      font-size: 0.54rem; font-weight: 700; color: var(--text3);
+    }
+    .card-m-title {
+      flex: 1; padding: 8px 8px; display: flex; align-items: center; gap: 4px; min-width: 0;
+    }
+    .card-m-title input {
+      flex: 1; background: transparent; border: none;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.88rem; font-weight: 600; color: var(--text);
+      outline: none; min-width: 0; padding: 2px 4px; border-radius: 6px;
+      transition: background 0.12s; -webkit-user-select: text; user-select: text;
+    }
+    .card-m-title input:focus { background: var(--focus-bg); }
+    .card-m-title input::placeholder { color: var(--text3); font-weight: 400; font-style: italic; }
+    .card-m-del {
+      background: transparent; border: none; color: var(--text3);
+      font-size: 0.8rem; padding: 6px 8px; cursor: pointer; flex-shrink: 0; line-height: 1;
+    }
+    .card-m-del:active { color: #ef4444; }
+    .card-m-badges {
+      display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+      padding: 7px 10px; border-bottom: 1px solid var(--border);
+    }
+    .card-m-blabel {
+      font-size: 0.5rem; font-weight: 700; color: var(--text3);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .card-m-bsep { width: 1px; height: 12px; background: var(--border); margin: 0 1px; }
+    .card-m-btn {
+      height: 22px; min-width: 48px; border-radius: 6px; border: none; cursor: pointer;
+      font-size: 0.54rem; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      display: inline-flex; align-items: center; justify-content: center; padding: 0 8px;
+    }
+    .card-m-btn:active { opacity: 0.75; }
+    .card-m-fields {
+      display: grid; grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-m-field {
+      padding: 6px 10px; border-right: 1px solid var(--border);
+    }
+    .card-m-field:last-child { border-right: none; }
+    .card-m-field-label {
+      font-size: 0.5rem; font-weight: 700; color: var(--text3);
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px;
+    }
+    .card-m-field input {
+      background: transparent; border: none; color: var(--text2);
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.75rem; font-weight: 500;
+      width: 100%; outline: none; padding: 0;
+      -webkit-user-select: text; user-select: text;
+    }
+    .card-m-field input:focus { color: var(--text); }
+    .card-m-field input::placeholder { color: var(--text3); font-weight: 400; }
+    .card-m-salas {
+      display: flex; align-items: center;
+      padding: 8px 10px; gap: 0; justify-content: space-around;
+    }
+    .card-m-sala { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+    .card-m-sala-name { font-size: 0.5rem; font-weight: 700; color: var(--text3); text-transform: uppercase; }
+    .card-m-sala .proj-btn { width: 34px; height: 34px; }
+    .card-m-sala .error-input { width: 44px; font-size: 0.56rem; }
+    .fab-mobile {
+      display: none;
+      position: fixed; bottom: 22px; right: 16px; z-index: 50;
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--accent); color: #fff; border: none;
+      font-size: 1.5rem; font-weight: 300; line-height: 1;
+      align-items: center; justify-content: center;
+      box-shadow: 0 6px 20px rgba(63,127,240,0.45); cursor: pointer;
     }
   </style>
 </head>
@@ -895,7 +866,6 @@
     </table>
   </div>
 
-  <!-- MOBILE CARDS -->
   <div class="cards-mobile" id="cardsMobile"></div>
   <button class="fab-mobile" onclick="manualAddRow()">+</button>
 
@@ -1009,7 +979,7 @@
       <!-- CRÉDITOS -->
       <div class="help-credits">
         <strong>Lista de Ingestas — Cines Babel</strong><br>
-        Versión actual: <strong>v1.14.1</strong><br>
+        Versión actual: <strong>v1.14.2</strong><br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1055,7 +1025,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>v1.14.1 · Diseño por Pablo Goitia</footer>
+<footer>v1.14.2 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ─── THEME ────────────────────────────────────
@@ -1692,7 +1662,6 @@ function render() {
   const n = rows.filter(r => !r.isEmpty).length;
   document.getElementById("counter").textContent =
     n === 0 ? "0 películas" : `${n} película${n !== 1 ? "s" : ""}`;
-
   renderMobile();
 }
 
@@ -1708,83 +1677,84 @@ function renderMobile() {
     if (!row.isEmpty && searchQuery && !matchesSearch(row)) return;
     if (!row.isEmpty && !rowMatchesFilters(row)) return;
 
-    const rowNum  = row.isEmpty ? "" : filled.indexOf(row) + 1;
+    const rowNum  = row.isEmpty ? "" : (filled.indexOf(row) + 1);
     const fmt     = FMT_STATES[row.fmt || 0];
     const fmt2    = FMT2_STATES[row.fmt2 || 0];
     const enc     = ENC_STATES[row.enc || 0];
     const dateStr = row.date ? formatDate(row.date) : "";
-    const [dateDay, dateTime] = dateStr ? dateStr.split(" ") : ["",""];
+    const parts   = dateStr ? dateStr.split(" ") : ["", ""];
 
-    const card = document.createElement("div");
-    card.className = "card-mobile" + (row.isEmpty ? " empty-card" : "");
+    // Badge colors inline
+    const sopBg  = fmt.cls==="sop-fisico"?  "var(--s-fisico)"  : fmt.cls==="sop-remoto"? "var(--s-remoto)"  : fmt.cls==="sop-otro"? "var(--s-otro)"   : "var(--s-blank)";
+    const sopCol = fmt.cls==="sop-fisico"?  "#1a5080"          : fmt.cls==="sop-remoto"? "#3a1a80"          : fmt.cls==="sop-otro"? "#804a10"          : "var(--text2)";
+    const encBg  = enc.cls==="enc-libre"?   "var(--e-libre)"   : enc.cls==="enc-kdm"?   "var(--e-kdm)"     : "var(--e-blank)";
+    const encCol = enc.cls==="enc-libre"?   "#1a6030"          : enc.cls==="enc-kdm"?   "#801a1a"          : "var(--text2)";
+    const fmtBg  = fmt2.cls==="fmt-flat"?   "var(--f-flat)"    : fmt2.cls==="fmt-scope"?"var(--f-scope)"   : fmt2.cls==="fmt-fmtotro"?"var(--f-otro)"  : "var(--f-blank)";
+    const fmtCol = fmt2.cls==="fmt-flat"?   "#0a6060"          : fmt2.cls==="fmt-scope"?"#801040"          : fmt2.cls==="fmt-fmtotro"?"#606010"        : "var(--text2)";
 
-    // Salas HTML
     const salasHTML = row.proj.map((p, i) => `
-      <div class="card-mobile-sala">
-        <span class="card-mobile-sala-name">S${i+1}</span>
+      <div class="card-m-sala">
+        <span class="card-m-sala-name">S${i+1}</span>
         <button class="proj-btn ${PROJ_CLASSES[p]}" id="mpbtn-${row.id}-${i}"></button>
         ${p === 3 ? `<input class="error-input" type="text" placeholder="Nota…"
-          value="${escHtml((row.projErr||[])[i]||'')}"
+          value="${escHtml((row.projErr||[])[i]||"")}"
           oninput="updateErrNote(${row.id},${i},this.value)"
           onclick="event.stopPropagation()"/>` : ""}
       </div>`).join("");
 
+    const card = document.createElement("div");
+    card.className = "card-m" + (row.isEmpty ? " empty-card" : "");
     card.innerHTML = `
-      <div class="card-mobile-top">
-        <div class="card-mobile-date">
-          ${dateDay  ? `<span class="card-mobile-date-day">${dateDay}</span>` : ""}
-          ${dateTime ? `<span class="card-mobile-date-time">${dateTime}</span>` : ""}
+      <div class="card-m-top">
+        <div class="card-m-date">
+          <span>${parts[0]}</span>
+          <span>${parts[1]}</span>
         </div>
-        <div class="card-mobile-num">${rowNum}</div>
-        <div class="card-mobile-title">
+        <div class="card-m-num">${rowNum}</div>
+        <div class="card-m-title">
           <input type="text"
             placeholder="${row.isEmpty ? "Nueva película…" : ""}"
             value="${escHtml(row.pelicula)}"
             oninput="typingPelicula(${row.id},this.value)"
             onblur="commitPelicula(${row.id},this.value)"
             onkeydown="if(event.key==='Enter')this.blur()"/>
-          ${!row.isEmpty ? `<button class="card-mobile-remove" onclick="removeRow(${row.id})">✕</button>` : ""}
+          ${!row.isEmpty ? `<button class="card-m-del" onclick="removeRow(${row.id})">✕</button>` : ""}
         </div>
       </div>
-      <div class="card-mobile-badges">
-        <span class="card-badge-label">Sop.</span>
-        <div class="cycle-btn ${fmt.cls.replace('sop-','') || 'sop-blank'}" style="height:22px;min-width:52px;font-size:0.54rem;font-weight:700;border-radius:6px;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;background:${fmt.cls==='sop-fisico'?'var(--s-fisico)':fmt.cls==='sop-remoto'?'var(--s-remoto)':fmt.cls==='sop-otro'?'var(--s-otro)':'var(--s-blank)'};color:${fmt.cls==='sop-fisico'?'#1a5080':fmt.cls==='sop-remoto'?'#3a1a80':fmt.cls==='sop-otro'?'#804a10':'var(--text2)'};" onclick="cycleFmt(${row.id})">${fmt.label}</div>
-        ${row.fmt===3 ? `<input style="background:transparent;border:none;border-bottom:1px dashed var(--border);color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif;font-size:0.62rem;width:60px;padding:1px 2px;outline:none;" type="text" placeholder="Tipo…" value="${escHtml(row.otroText)}" oninput="updateOtroText(${row.id},this.value)" onclick="event.stopPropagation()"/>` : ""}
-        <div class="card-badge-sep"></div>
-        <span class="card-badge-label">Enc.</span>
-        <div style="height:22px;min-width:52px;font-size:0.54rem;font-weight:700;border-radius:6px;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;letter-spacing:0.04em;text-transform:uppercase;background:${enc.cls==='enc-libre'?'var(--e-libre)':enc.cls==='enc-kdm'?'var(--e-kdm)':'var(--e-blank)'};color:${enc.cls==='enc-libre'?'#1a6030':enc.cls==='enc-kdm'?'#801a1a':'var(--text2)'};" onclick="cycleEnc(${row.id})">${enc.label}</div>
-        <div class="card-badge-sep"></div>
-        <span class="card-badge-label">Fmt.</span>
-        <div style="height:22px;min-width:52px;font-size:0.54rem;font-weight:700;border-radius:6px;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;letter-spacing:0.04em;text-transform:uppercase;background:${fmt2.cls==='fmt-flat'?'var(--f-flat)':fmt2.cls==='fmt-scope'?'var(--f-scope)':fmt2.cls==='fmt-fmtotro'?'var(--f-otro)':'var(--f-blank)'};color:${fmt2.cls==='fmt-flat'?'#0a6060':fmt2.cls==='fmt-scope'?'#801040':fmt2.cls==='fmt-fmtotro'?'#606010':'var(--text2)'};" onclick="cycleFmt2(${row.id})">${fmt2.label}</div>
-        ${(row.fmt2||0)===3 ? `<input style="background:transparent;border:none;border-bottom:1px dashed var(--border);color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif;font-size:0.62rem;width:60px;padding:1px 2px;outline:none;" type="text" placeholder="Tipo…" value="${escHtml(row.fmt2OtroText||'')}" oninput="updateFmt2OtroText(${row.id},this.value)" onclick="event.stopPropagation()"/>` : ""}
+      <div class="card-m-badges">
+        <span class="card-m-blabel">Sop.</span>
+        <button class="card-m-btn" style="background:${sopBg};color:${sopCol};" onclick="cycleFmt(${row.id})">${fmt.label}</button>
+        ${row.fmt===3 ? `<input style="background:transparent;border:none;border-bottom:1px dashed var(--border);color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif;font-size:0.62rem;width:56px;padding:1px 2px;outline:none;" type="text" placeholder="Tipo…" value="${escHtml(row.otroText)}" oninput="updateOtroText(${row.id},this.value)"/>` : ""}
+        <div class="card-m-bsep"></div>
+        <span class="card-m-blabel">Enc.</span>
+        <button class="card-m-btn" style="background:${encBg};color:${encCol};" onclick="cycleEnc(${row.id})">${enc.label}</button>
+        <div class="card-m-bsep"></div>
+        <span class="card-m-blabel">Fmt.</span>
+        <button class="card-m-btn" style="background:${fmtBg};color:${fmtCol};" onclick="cycleFmt2(${row.id})">${fmt2.label}</button>
+        ${(row.fmt2||0)===3 ? `<input style="background:transparent;border:none;border-bottom:1px dashed var(--border);color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif;font-size:0.62rem;width:56px;padding:1px 2px;outline:none;" type="text" placeholder="Tipo…" value="${escHtml(row.fmt2OtroText||"")}" oninput="updateFmt2OtroText(${row.id},this.value)"/>` : ""}
       </div>
-      <div class="card-mobile-fields">
-        <div class="card-mobile-field">
-          <div class="card-mobile-field-label">Notas</div>
-          <input type="text" placeholder="—" value="${escHtml(row.notas||'')}"
+      <div class="card-m-fields">
+        <div class="card-m-field">
+          <div class="card-m-field-label">Notas</div>
+          <input type="text" placeholder="—" value="${escHtml(row.notas||"")}"
             oninput="handleNotasChange(${row.id},this.value)"/>
         </div>
-        <div class="card-mobile-field">
-          <div class="card-mobile-field-label">Archivo</div>
+        <div class="card-m-field">
+          <div class="card-m-field-label">Archivo</div>
           <input type="text" placeholder="—" value="${escHtml(row.archivo)}"
             oninput="handleArchivoChange(${row.id},this.value)"/>
         </div>
       </div>
-      <div class="card-mobile-salas">${salasHTML}</div>
+      <div class="card-m-salas">${salasHTML}</div>
     `;
-
     container.appendChild(card);
 
-    // Attach sala listeners
     row.proj.forEach((_, i) => {
       const btn = document.getElementById(`mpbtn-${row.id}-${i}`);
       if (btn) attachProjListeners(btn, row.id, i);
     });
   });
 }
-}
-
-// ─── LONG PRESS LOGIC ─────────────────────────
 function attachProjListeners(btn, rowId, idx) {
   let pressTimer   = null;
   let didLongPress = false;

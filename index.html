@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas — Cines Babel · v1.14.2</title>
+  <title>Ingestas — Cines Babel · v1.14.3</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><text y='32' font-size='32'>🎬</text></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -979,7 +979,7 @@
       <!-- CRÉDITOS -->
       <div class="help-credits">
         <strong>Lista de Ingestas — Cines Babel</strong><br>
-        Versión actual: <strong>v1.14.2</strong><br>
+        Versión actual: <strong>v1.14.3</strong><br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1025,7 +1025,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>v1.14.2 · Diseño por Pablo Goitia</footer>
+<footer>v1.14.3 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ─── THEME ────────────────────────────────────
@@ -1195,6 +1195,8 @@ function initSupabase() {
 }
 
 // ─── REALTIME ─────────────────────────────────
+let realtimeConnected = false;
+
 function setupRealtime() {
   if (!supabaseClient) return;
   if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
@@ -1202,10 +1204,22 @@ function setupRealtime() {
   realtimeChannel = supabaseClient
     .channel("peliculas-changes")
     .on("postgres_changes", { event: "*", schema: "public", table: "peliculas" }, (payload) => {
-      if (hasPendingChanges) return; // never overwrite while editing
+      realtimeConnected = true;
+      if (hasPendingChanges) return;
       handleRealtimeChange(payload);
     })
-    .subscribe();
+    .subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        realtimeConnected = true;
+      } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        realtimeConnected = false;
+      }
+    });
+
+  // Polling fallback every 15s in case realtime is not working
+  setInterval(() => {
+    if (!hasPendingChanges) loadFromSheets();
+  }, 15000);
 }
 
 function handleRealtimeChange(payload) {
@@ -1685,12 +1699,12 @@ function renderMobile() {
     const parts   = dateStr ? dateStr.split(" ") : ["", ""];
 
     // Badge colors inline
-    const sopBg  = fmt.cls==="sop-fisico"?  "var(--s-fisico)"  : fmt.cls==="sop-remoto"? "var(--s-remoto)"  : fmt.cls==="sop-otro"? "var(--s-otro)"   : "var(--s-blank)";
-    const sopCol = fmt.cls==="sop-fisico"?  "#1a5080"          : fmt.cls==="sop-remoto"? "#3a1a80"          : fmt.cls==="sop-otro"? "#804a10"          : "var(--text2)";
-    const encBg  = enc.cls==="enc-libre"?   "var(--e-libre)"   : enc.cls==="enc-kdm"?   "var(--e-kdm)"     : "var(--e-blank)";
-    const encCol = enc.cls==="enc-libre"?   "#1a6030"          : enc.cls==="enc-kdm"?   "#801a1a"          : "var(--text2)";
-    const fmtBg  = fmt2.cls==="fmt-flat"?   "var(--f-flat)"    : fmt2.cls==="fmt-scope"?"var(--f-scope)"   : fmt2.cls==="fmt-fmtotro"?"var(--f-otro)"  : "var(--f-blank)";
-    const fmtCol = fmt2.cls==="fmt-flat"?   "#0a6060"          : fmt2.cls==="fmt-scope"?"#801040"          : fmt2.cls==="fmt-fmtotro"?"#606010"        : "var(--text2)";
+    const sopBg  = fmt.cls==="fisico"?   "var(--s-fisico)"  : fmt.cls==="remoto"?  "var(--s-remoto)"  : fmt.cls==="otro"?     "var(--s-otro)"    : "var(--s-blank)";
+    const sopCol = fmt.cls==="fisico"?   "#1a5080"          : fmt.cls==="remoto"?  "#3a1a80"          : fmt.cls==="otro"?     "#804a10"          : "var(--text2)";
+    const encBg  = enc.cls==="libre"?    "var(--e-libre)"   : enc.cls==="kdm"?     "var(--e-kdm)"     : "var(--e-blank)";
+    const encCol = enc.cls==="libre"?    "#1a6030"          : enc.cls==="kdm"?     "#801a1a"          : "var(--text2)";
+    const fmtBg  = fmt2.cls==="flat"?    "var(--f-flat)"    : fmt2.cls==="scope"?  "var(--f-scope)"   : fmt2.cls==="fmtotro"? "var(--f-otro)"    : "var(--f-blank)";
+    const fmtCol = fmt2.cls==="flat"?    "#0a6060"          : fmt2.cls==="scope"?  "#801040"          : fmt2.cls==="fmtotro"? "#606010"          : "var(--text2)";
 
     const salasHTML = row.proj.map((p, i) => `
       <div class="card-m-sala">

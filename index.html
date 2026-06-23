@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas — Cines Babel · v1.14.6</title>
+  <title>Ingestas — Cines Babel · v1.15.2</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><text y='32' font-size='32'>🎬</text></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -645,8 +645,12 @@
       .header-right::-webkit-scrollbar { display: none; }
       .btn-config, .btn-save, .btn-help, .theme-toggle { flex-shrink: 0; }
       .search-wrap { padding: 8px 12px; gap: 6px; }
-      .search-inner { max-width: 100%; }
+      .search-inner { max-width: 100%; flex: 1; transition: all 0.2s; }
       .btn-add-row { order: 3; width: 100%; justify-content: center; margin-top: 0; }
+      .search-wrap.focused .btn-add-row { display: none; }
+      .search-wrap.focused .search-count { display: none; }
+      .search-wrap.focused .btn-clear { display: none; }
+      .search-wrap.focused .search-input { font-size: 1rem; }
       .filter-bar { flex-wrap: nowrap; overflow-x: auto; padding: 6px 12px; -webkit-overflow-scrolling: touch; }
       .filter-bar::-webkit-scrollbar { display: none; }
       .filter-chip { white-space: nowrap; flex-shrink: 0; }
@@ -999,7 +1003,7 @@
       <!-- CRÉDITOS -->
       <div class="help-credits">
         <strong>Lista de Ingestas — Cines Babel</strong><br>
-        Versión actual: <strong>v1.14.6</strong><br>
+        Versión actual: <strong>v1.15.2</strong><br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1045,7 +1049,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>v1.14.6 · Diseño por Pablo Goitia</footer>
+<footer>v1.15.2 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ─── THEME ────────────────────────────────────
@@ -1793,6 +1797,16 @@ function renderMobile() {
     });
   });
 }
+
+// ─── MOBILE SEARCH EXPAND ─────────────────────
+document.getElementById("searchInput").addEventListener("focus", function() {
+  if (window.innerWidth <= 768) {
+    document.querySelector(".search-wrap").classList.add("focused");
+  }
+});
+document.getElementById("searchInput").addEventListener("blur", function() {
+  document.querySelector(".search-wrap").classList.remove("focused");
+});
 
 // ─── MOBILE SCROLL GUARD ──────────────────────
 let touchStartY = 0;

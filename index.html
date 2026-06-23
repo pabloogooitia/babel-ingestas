@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas — Cines Babel · v1.14.3</title>
+  <title>Ingestas — Cines Babel · v1.14.4</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><text y='32' font-size='32'>🎬</text></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -631,11 +631,19 @@
     /* ── MOBILE ── */
     @media (max-width: 768px) {
       main { padding: 12px 12px 90px; }
-      .header { padding: 10px 12px; gap: 8px; }
-      h1 { font-size: 0.8rem; }
+      .header { padding: 10px 12px; gap: 8px; flex-wrap: nowrap; overflow: hidden; }
+      h1 { font-size: 0.8rem; white-space: nowrap; }
       .header-eyebrow { display: none; }
       .sync-status { display: none; }
-      .counter { font-size: 0.56rem; padding: 2px 7px; }
+      .counter { font-size: 0.56rem; padding: 2px 7px; white-space: nowrap; flex-shrink: 0; }
+      .header-left { flex-shrink: 0; min-width: 0; }
+      .header-right {
+        overflow-x: auto; flex-wrap: nowrap; flex-shrink: 1;
+        -webkit-overflow-scrolling: touch; gap: 6px;
+        scrollbar-width: none; padding-right: 4px;
+      }
+      .header-right::-webkit-scrollbar { display: none; }
+      .btn-config, .btn-save, .btn-help, .theme-toggle { flex-shrink: 0; }
       .search-wrap { padding: 8px 12px; gap: 6px; }
       .search-inner { max-width: 100%; }
       .btn-add-row { order: 3; width: 100%; justify-content: center; margin-top: 0; }
@@ -979,7 +987,7 @@
       <!-- CRÉDITOS -->
       <div class="help-credits">
         <strong>Lista de Ingestas — Cines Babel</strong><br>
-        Versión actual: <strong>v1.14.3</strong><br>
+        Versión actual: <strong>v1.14.4</strong><br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1025,7 +1033,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>v1.14.3 · Diseño por Pablo Goitia</footer>
+<footer>v1.14.4 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ─── THEME ────────────────────────────────────
@@ -1737,14 +1745,14 @@ function renderMobile() {
       </div>
       <div class="card-m-badges">
         <span class="card-m-blabel">Sop.</span>
-        <button class="card-m-btn" style="background:${sopBg};color:${sopCol};" onclick="cycleFmt(${row.id})">${fmt.label}</button>
+        <button class="card-m-btn" style="background:${sopBg};color:${sopCol};" onclick="if(!touchMoved)cycleFmt(${row.id})">${fmt.label}</button>
         ${row.fmt===3 ? `<input style="background:transparent;border:none;border-bottom:1px dashed var(--border);color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif;font-size:0.62rem;width:56px;padding:1px 2px;outline:none;" type="text" placeholder="Tipo…" value="${escHtml(row.otroText)}" oninput="updateOtroText(${row.id},this.value)"/>` : ""}
         <div class="card-m-bsep"></div>
         <span class="card-m-blabel">Enc.</span>
-        <button class="card-m-btn" style="background:${encBg};color:${encCol};" onclick="cycleEnc(${row.id})">${enc.label}</button>
+        <button class="card-m-btn" style="background:${encBg};color:${encCol};" onclick="if(!touchMoved)cycleEnc(${row.id})">${enc.label}</button>
         <div class="card-m-bsep"></div>
         <span class="card-m-blabel">Fmt.</span>
-        <button class="card-m-btn" style="background:${fmtBg};color:${fmtCol};" onclick="cycleFmt2(${row.id})">${fmt2.label}</button>
+        <button class="card-m-btn" style="background:${fmtBg};color:${fmtCol};" onclick="if(!touchMoved)cycleFmt2(${row.id})">${fmt2.label}</button>
         ${(row.fmt2||0)===3 ? `<input style="background:transparent;border:none;border-bottom:1px dashed var(--border);color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif;font-size:0.62rem;width:56px;padding:1px 2px;outline:none;" type="text" placeholder="Tipo…" value="${escHtml(row.fmt2OtroText||"")}" oninput="updateFmt2OtroText(${row.id},this.value)"/>` : ""}
       </div>
       <div class="card-m-fields">
@@ -1769,6 +1777,22 @@ function renderMobile() {
     });
   });
 }
+
+// ─── MOBILE SCROLL GUARD ──────────────────────
+let touchStartY = 0;
+let touchStartX = 0;
+let touchMoved  = false;
+
+document.addEventListener("touchstart", (e) => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  touchMoved  = false;
+}, { passive: true });
+
+document.addEventListener("touchmove", () => {
+  touchMoved = true;
+}, { passive: true });
+
 function attachProjListeners(btn, rowId, idx) {
   let pressTimer   = null;
   let didLongPress = false;
@@ -1789,7 +1813,8 @@ function attachProjListeners(btn, rowId, idx) {
       document.removeEventListener("touchend",   onRelease);
       document.removeEventListener("touchcancel",onRelease);
       clearTimeout(pressTimer);
-      if (!didLongPress) {
+      btn.classList.remove("pressing");
+      if (!didLongPress && !touchMoved) {
         cycleProj(rowId, idx);
       }
       didLongPress = false;
@@ -1901,9 +1926,12 @@ function updateFmt2OtroText(id, value) {
 function handleNotasChange(id, input) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
-  row.notas = input.value;
-  if (input.value) input.classList.add("has-text");
-  else input.classList.remove("has-text");
+  const value = typeof input === "string" ? input : input.value;
+  row.notas = value;
+  if (typeof input !== "string") {
+    if (value) input.classList.add("has-text");
+    else input.classList.remove("has-text");
+  }
   scheduleSave(id);
 }
 
@@ -1911,9 +1939,12 @@ function handleNotasChange(id, input) {
 function handleArchivoChange(id, input) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
-  row.archivo = input.value;
-  if (input.value) input.classList.add("has-text");
-  else input.classList.remove("has-text");
+  const value = typeof input === "string" ? input : input.value;
+  row.archivo = value;
+  if (typeof input !== "string") {
+    if (value) input.classList.add("has-text");
+    else input.classList.remove("has-text");
+  }
   scheduleSave(id);
 }
 

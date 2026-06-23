@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas — Cines Babel · v1.14.5</title>
+  <title>Ingestas — Cines Babel · v1.14.6</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><text y='32' font-size='32'>🎬</text></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -999,7 +999,7 @@
       <!-- CRÉDITOS -->
       <div class="help-credits">
         <strong>Lista de Ingestas — Cines Babel</strong><br>
-        Versión actual: <strong>v1.14.5</strong><br>
+        Versión actual: <strong>v1.14.6</strong><br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1045,7 +1045,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>v1.14.5 · Diseño por Pablo Goitia</footer>
+<footer>v1.14.6 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ─── THEME ────────────────────────────────────
@@ -1987,7 +1987,23 @@ function removeRow(id) {
   render(); scheduleSave(undefined);
 }
 
-function manualAddRow() { addEmptyRow(); render(); }
+function manualAddRow() {
+  addEmptyRow();
+  render();
+  // On mobile, temporarily show the empty card and focus the title input
+  const emptyCard = document.querySelector(".cards-mobile .empty-card");
+  if (emptyCard) {
+    emptyCard.style.display = "block";
+    const input = emptyCard.querySelector("input[type='text']");
+    if (input) {
+      input.focus();
+      // Hide again if user doesn't type anything
+      input.addEventListener("blur", function() {
+        if (!input.value.trim()) emptyCard.style.display = "";
+      }, { once: true });
+    }
+  }
+}
 
 // ─── HELPERS ──────────────────────────────────
 function formatDate(iso) {

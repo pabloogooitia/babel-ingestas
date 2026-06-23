@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas — Cines Babel · v1.15.2</title>
+  <title>Ingestas — Cines Babel · v1.15.3</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><text y='32' font-size='32'>🎬</text></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1000,10 +1000,25 @@
 
       <hr class="help-divider"/>
 
+      <!-- BACKUP -->
+      <div class="help-section">
+        <div class="help-section-title">💾 Copia de seguridad</div>
+        <p>Exporta todos los datos actuales a un archivo JSON. Guárdalo como copia de seguridad local. Para restaurar, importa el archivo y los datos se cargarán en la herramienta.</p>
+        <div style="display:flex;gap:12px;margin-top:12px;">
+          <button onclick="exportBackup()" class="btn-secondary" style="flex:1;font-size:0.68rem;padding:9px 16px;">↓ Exportar datos</button>
+          <label style="flex:1;">
+            <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importBackup(this)"/>
+            <span class="btn-secondary" onclick="document.getElementById('importFile').click()" style="display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.68rem;padding:9px 16px;">↑ Importar datos</span>
+          </label>
+        </div>
+      </div>
+
+      <hr class="help-divider"/>
+
       <!-- CRÉDITOS -->
       <div class="help-credits">
         <strong>Lista de Ingestas — Cines Babel</strong><br>
-        Versión actual: <strong>v1.15.2</strong><br>
+        Versión actual: <strong>v1.15.3</strong><br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1049,7 +1064,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>v1.15.2 · Diseño por Pablo Goitia</footer>
+<footer>v1.15.3 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ─── THEME ────────────────────────────────────
@@ -1796,6 +1811,45 @@ function renderMobile() {
       if (btn) attachProjListeners(btn, row.id, i);
     });
   });
+}
+
+// ─── BACKUP ───────────────────────────────────
+function exportBackup() {
+  const data = rows.filter(r => !r.isEmpty);
+  const json = JSON.stringify({ version: "v1.15.3", date: new Date().toISOString(), rows: data }, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  const dateStr = new Date().toISOString().slice(0,10);
+  a.href     = url;
+  a.download = `babel-ingestas-backup-${dateStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("✓ Backup exportado correctamente");
+}
+
+function importBackup(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      const imported = (data.rows || data).map(migrateRow);
+      if (!Array.isArray(imported) || imported.length === 0) throw new Error("Formato inválido");
+      rows = deduplicateRows(imported.filter(r => !r.isEmpty));
+      nextId = Math.max(...rows.map(r => r.id || 0), 0) + 1;
+      addEmptyRow();
+      saveLocal();
+      render();
+      showToast("✓ " + imported.length + " películas restauradas");
+      closeHelp();
+    } catch(err) {
+      showToast("⚠ Error al importar: " + err.message);
+    }
+    input.value = "";
+  };
+  reader.readAsText(file);
 }
 
 // ─── MOBILE SEARCH EXPAND ─────────────────────

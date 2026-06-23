@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas — Cines Babel · v1.14.4</title>
+  <title>Ingestas — Cines Babel · v1.14.5</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><text y='32' font-size='32'>🎬</text></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -653,6 +653,7 @@
       .filter-sep { flex-shrink: 0; }
       .table-wrap { display: none; }
       .cards-mobile { display: flex !important; flex-direction: column; gap: 10px; }
+      .cards-mobile .empty-card { display: none; }
       .fab-mobile { display: flex !important; }
     }
     @media (min-width: 769px) {
@@ -749,9 +750,18 @@
       position: fixed; bottom: 22px; right: 16px; z-index: 50;
       width: 52px; height: 52px; border-radius: 50%;
       background: var(--accent); color: #fff; border: none;
-      font-size: 1.5rem; font-weight: 300; line-height: 1;
       align-items: center; justify-content: center;
       box-shadow: 0 6px 20px rgba(63,127,240,0.45); cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .fab-mobile.has-changes {
+      background: #fb923c;
+      box-shadow: 0 6px 20px rgba(251,146,60,0.45);
+      animation: pulse-fab 1.5s infinite;
+    }
+    @keyframes pulse-fab {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.06); }
     }
   </style>
 </head>
@@ -875,7 +885,9 @@
   </div>
 
   <div class="cards-mobile" id="cardsMobile"></div>
-  <button class="fab-mobile" onclick="manualAddRow()">+</button>
+  <button class="fab-mobile" id="fabMobile" onclick="saveNow()" title="Guardar">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+  </button>
 
 </main>
 
@@ -987,7 +999,7 @@
       <!-- CRÉDITOS -->
       <div class="help-credits">
         <strong>Lista de Ingestas — Cines Babel</strong><br>
-        Versión actual: <strong>v1.14.4</strong><br>
+        Versión actual: <strong>v1.14.5</strong><br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1033,7 +1045,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>v1.14.4 · Diseño por Pablo Goitia</footer>
+<footer>v1.14.5 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ─── THEME ────────────────────────────────────
@@ -1414,6 +1426,8 @@ function setSyncStatus(state, text) {
   document.getElementById("syncText").textContent = text;
   if (state === "synced" || state === "error") {
     document.getElementById("btnSave").classList.remove("has-changes");
+    const fab = document.getElementById("fabMobile");
+    if (fab) fab.classList.remove("has-changes");
     hasPendingChanges = false;
     pendingRowIds.clear();
   }
@@ -1425,6 +1439,8 @@ function setPendingState() {
   document.getElementById("syncDot").className = "sync-dot pending";
   document.getElementById("syncText").textContent = "Cambios sin guardar";
   document.getElementById("btnSave").classList.add("has-changes");
+  const fab = document.getElementById("fabMobile");
+  if (fab) fab.classList.add("has-changes");
 }
 
 function rowToRecord(r) {

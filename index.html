@@ -4,9 +4,12 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Ingestas — Cines Babel · v1.15.3</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><text y='32' font-size='32'>🎬</text></svg>">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="icon" href="icon.png"/>
+  <link rel="apple-touch-icon" href="icon.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+  <meta name="apple-mobile-web-app-title" content="Ingestas"/>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1067,7 +1070,12 @@
 <footer>v1.15.3 · Diseño por Pablo Goitia</footer>
 
 <script>
-// ─── THEME ────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// TEMA VISUAL (claro / oscuro)
+// El tema elegido se guarda en localStorage para que se recuerde
+// entre sesiones. Al cargar la página, se aplica automáticamente.
+// ═══════════════════════════════════════════════════════════════════════════
+
 function toggleTheme() {
   document.body.classList.toggle('dark');
   localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
@@ -1076,9 +1084,18 @@ function initTheme() {
   if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
 }
 
-// ─── FILTERS ──────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// FILTROS POR BOTÓN
+// activeFilters guarda qué filtro está activo en cada categoría.
+// soporte, enc, fmt y estado admiten un solo valor activo a la vez.
+// sala admite varios valores simultáneos (multi-selección).
+// ═══════════════════════════════════════════════════════════════════════════
+
 const activeFilters = { soporte: null, enc: null, fmt: null, estado: null, sala: new Set() };
 
+// Activa o desactiva un filtro al hacer clic en su botón.
+// Si el filtro ya estaba activo, lo desactiva (toggle).
+// Para salas permite seleccionar varias a la vez.
 function toggleFilter(group, value, el) {
   if (group === 'sala') {
     // Multi-select for sala
@@ -1107,6 +1124,9 @@ function toggleFilter(group, value, el) {
   render();
 }
 
+// Comprueba si una fila cumple TODOS los filtros activos.
+// Si algún filtro no se cumple, la fila no se muestra.
+// El filtro de sala muestra la película si ESA sala está en verde o amarillo.
 function rowMatchesFilters(row) {
   // Soporte
   if (activeFilters.soporte) {
@@ -1139,6 +1159,8 @@ function rowMatchesFilters(row) {
   return true;
 }
 
+// Actualiza el contador de resultados que aparece junto al buscador.
+// También muestra u oculta el botón "Limpiar".
 function updateSearchCount() {
   const countEl  = document.getElementById("searchCount");
   const clearBtn = document.getElementById("clearSearch");
@@ -1154,7 +1176,13 @@ function updateSearchCount() {
   }
 }
 
-// ─── SEARCH ───────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// BUSCADOR DE TEXTO
+// Filtra las filas en tiempo real mientras se escribe.
+// Busca en todos los campos: título, archivo, notas, soporte,
+// formato, encriptación y estado de las salas.
+// ═══════════════════════════════════════════════════════════════════════════
+
 let searchQuery = "";
 
 function applySearch(value) {
@@ -1177,6 +1205,7 @@ function clearSearch() {
   render();
 }
 
+// Comprueba si una fila contiene el texto buscado en alguno de sus campos.
 function matchesSearch(row) {
   if (!searchQuery) return true;
   const q = searchQuery;
@@ -1211,7 +1240,15 @@ function matchesSearch(row) {
 }
 
 // ─── CONFIG ───────────────────────────────────
-// ─── SUPABASE CONFIG ──────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// CONFIGURACIÓN DE SUPABASE
+// Supabase es la base de datos en la nube donde se guardan los datos.
+// La URL y la clave se guardan en localStorage de cada ordenador
+// y se configuran desde el modal de ⚙ Supabase.
+// SESSION_ID identifica esta sesión concreta (se renueva al recargar).
+// SESSION_NAME es el nombre del ordenador (configurable en el modal).
+// ═══════════════════════════════════════════════════════════════════════════
+
 let supabaseUrl = localStorage.getItem("supabase_url") || "";
 let supabaseKey = localStorage.getItem("supabase_key") || "";
 let supabaseClient = null;
@@ -1222,6 +1259,9 @@ let presenceChannel = null;
 const SESSION_ID   = Math.random().toString(36).slice(2, 10).toUpperCase();
 const SESSION_NAME = localStorage.getItem("device_name") || ("PC-" + SESSION_ID);
 
+// Inicializa la conexión con Supabase usando la URL y clave guardadas.
+// Si no hay credenciales configuradas, no hace nada.
+// Activa el tiempo real y el sistema de presencia (usuarios conectados).
 function initSupabase() {
   if (!supabaseUrl || !supabaseKey) return;
   try {
@@ -1233,7 +1273,13 @@ function initSupabase() {
   }
 }
 
-// ─── REALTIME ─────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// TIEMPO REAL (Supabase Realtime)
+// Cuando otro ordenador guarda cambios, Supabase avisa automáticamente
+// a todos los ordenadores conectados sin necesidad de recargar la página.
+// Si el tiempo real no está disponible, hay un polling de seguridad cada 15s.
+// ═══════════════════════════════════════════════════════════════════════════
+
 let realtimeConnected = false;
 
 function setupRealtime() {
@@ -1261,6 +1307,9 @@ function setupRealtime() {
   }, 15000);
 }
 
+// Procesa un cambio recibido en tiempo real desde Supabase.
+// Puede ser una inserción, actualización o borrado de fila.
+// Si el usuario está editando esa fila en este momento, no la toca.
 function handleRealtimeChange(payload) {
   const { eventType, new: newRecord, old: oldRecord } = payload;
 
@@ -1294,6 +1343,8 @@ function handleRealtimeChange(payload) {
   saveLocal(); render();
 }
 
+// Convierte una fila de Supabase (nombres de columna en snake_case)
+// al formato interno que usa la herramienta (camelCase).
 function mapSupabaseRow(r) {
   return migrateRow({
     id:           r.row_id,
@@ -1312,7 +1363,12 @@ function mapSupabaseRow(r) {
   });
 }
 
-// ─── PRESENCE ─────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// PRESENCIA (usuarios conectados simultáneamente)
+// Supabase permite saber en tiempo real qué ordenadores tienen
+// la herramienta abierta. Se muestra en el panel de Debug del modal de Ayuda.
+// ═══════════════════════════════════════════════════════════════════════════
+
 let connectedSessions = {};
 
 function setupPresence() {
@@ -1340,6 +1396,8 @@ function setupPresence() {
     });
 }
 
+// Actualiza el panel de Debug en el modal de Ayuda con la lista
+// de sesiones activas y la hora de conexión de cada una.
 function updateDebugPanel() {
   const el = document.getElementById("debugStatus");
   if (!el) return;
@@ -1355,7 +1413,18 @@ function updateDebugPanel() {
   el.innerHTML = `<strong>${count} sesión${count !== 1 ? "es" : ""} activa${count !== 1 ? "s" : ""}:</strong><br>${list}`;
 }
 
-// ─── CONSTANTS ────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// CONSTANTES Y ESTADO GLOBAL
+// FMT_STATES: estados posibles del botón Soporte (Físico, Remoto, Otro...)
+// FMT2_STATES: estados posibles del botón Formato (Flat, Scope...)
+// ENC_STATES: estados posibles del botón Encriptación (Libre, KDMs...)
+// PROJ_CLASSES: clases CSS para los colores de las salas S1-S5
+// PROJ_LABELS: etiquetas de texto para los estados de las salas
+// LONG_PRESS_MS: milisegundos que hay que mantener pulsado para activar Error
+// rows: array con todas las películas de la lista
+// nextId: contador para generar IDs únicos a cada fila nueva
+// ═══════════════════════════════════════════════════════════════════════════
+
 const FMT_STATES = [
   { key:"blank",  label:"—",      cls:"" },
   { key:"fisico", label:"Físico", cls:"fisico" },
@@ -1383,6 +1452,10 @@ const LONG_PRESS_MS = 600;
 let rows      = [];
 let nextId    = 1;
 
+// Elimina filas duplicadas (mismo ID) del array.
+// Si hay dos filas con el mismo ID, se queda con la que tiene
+// más información útil (más salas en verde, archivo, notas...).
+// También ordena las filas por fecha de entrada, más reciente primero.
 function deduplicateRows(rowList) {
   const seen = {};
   rowList.forEach(row => {
@@ -1398,7 +1471,13 @@ function deduplicateRows(rowList) {
   return Object.values(seen).sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
-// ─── ROW MIGRATION ────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// MIGRACIÓN DE DATOS ANTIGUOS
+// Cuando se cargan datos guardados con una versión anterior de la herramienta,
+// puede que les falten campos nuevos (enc, notas, fmt2...).
+// Esta función los añade con valores por defecto para evitar errores.
+// ═══════════════════════════════════════════════════════════════════════════
+
 function migrateRow(row) {
   if (row.enc    === undefined) row.enc = 0;
   if (row.notas  === undefined) row.notas = "";
@@ -1408,7 +1487,13 @@ function migrateRow(row) {
   return row;
 }
 
-// ─── LOCAL STORAGE ────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// ALMACENAMIENTO LOCAL (localStorage)
+// Los datos se guardan también en el navegador como copia de seguridad.
+// Si no hay conexión a Supabase, se cargan desde aquí.
+// saveLocal() se llama en cada cambio para no perder datos si se cierra el navegador.
+// ═══════════════════════════════════════════════════════════════════════════
+
 function loadLocal() {
   try {
     const saved = localStorage.getItem("cine_rows");
@@ -1423,9 +1508,13 @@ function loadLocal() {
   render();
 }
 
+// Guarda el estado actual de todas las filas en el navegador (localStorage).
 function saveLocal() { localStorage.setItem("cine_rows", JSON.stringify(rows)); }
 
 // ─── SHEETS SYNC ──────────────────────────────
+// Actualiza el indicador de estado en el header (punto de color + texto).
+// Estados: syncing (cargando), pending (cambios sin guardar),
+//          synced (guardado), error (error de conexión), local (sin Supabase).
 function setSyncStatus(state, text) {
   document.getElementById("syncDot").className = "sync-dot " + state;
   document.getElementById("syncText").textContent = text;
@@ -1436,9 +1525,16 @@ function setSyncStatus(state, text) {
 }
 
 // ─── SYNC ─────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// SISTEMA DE GUARDADO Y SINCRONIZACIÓN
+// hasPendingChanges: true si hay cambios sin guardar en Supabase
+// saveTimer: temporizador del autoguardado (10 segundos de inactividad)
+// pendingRowIds: IDs de las filas que han cambiado (para guardar solo las necesarias)
+// ═══════════════════════════════════════════════════════════════════════════
+
 let hasPendingChanges = false;
 let saveTimer = null;
-let pendingRowIds = new Set(); // Track which rows changed
+let pendingRowIds = new Set(); // IDs de filas modificadas desde el último guardado
 
 function setSyncStatus(state, text) {
   document.getElementById("syncDot").className = "sync-dot " + state;
@@ -1452,6 +1548,9 @@ function setSyncStatus(state, text) {
   }
 }
 
+// Marca que hay cambios pendientes de guardar.
+// Pone el indicador en naranja y activa el botón Guardar.
+// Solo actúa si hay Supabase configurado.
 function setPendingState() {
   hasPendingChanges = true;
   if (!supabaseUrl || !supabaseKey) return;
@@ -1462,6 +1561,8 @@ function setPendingState() {
   if (fab) fab.classList.add("has-changes");
 }
 
+// Convierte una fila del formato interno (camelCase) al formato de Supabase
+// (snake_case con los nombres exactos de las columnas de la base de datos).
 function rowToRecord(r) {
   return {
     row_id:       r.id,
@@ -1480,6 +1581,9 @@ function rowToRecord(r) {
 }
 
 // Save only the rows that actually changed
+// Guarda en Supabase solo las filas que han cambiado (pendingRowIds).
+// También borra de Supabase las filas que se hayan eliminado de la lista.
+// Si algo falla, los datos siguen guardados en localStorage.
 async function syncToSheets() {
   if (!supabaseUrl || !supabaseKey) return;
   setSyncStatus("syncing", "Guardando…");
@@ -1538,6 +1642,9 @@ async function syncToSheets() {
 }
 
 // Initial full load from Supabase
+// Carga todos los datos desde Supabase.
+// Si hay cambios pendientes sin guardar, NO recarga para no perder trabajo.
+// Si Supabase no está disponible, usa los datos del localStorage.
 async function loadFromSheets() {
   if (!supabaseUrl || !supabaseKey) { loadLocal(); return; }
   if (hasPendingChanges) return;
@@ -1566,6 +1673,9 @@ async function loadFromSheets() {
   }
 }
 
+// Programa un guardado automático 10 segundos después del último cambio.
+// Si hay más cambios antes de que pasen los 10s, reinicia el temporizador.
+// Guarda inmediatamente en localStorage y marca el cambio como pendiente.
 function scheduleSave(rowId) {
   saveLocal();
   if (!supabaseUrl || !supabaseKey) return;
@@ -1575,13 +1685,21 @@ function scheduleSave(rowId) {
   saveTimer = setTimeout(syncToSheets, 10000); // 10s autoguardado
 }
 
+// Guarda inmediatamente en Supabase, cancelando el temporizador automático.
+// Se llama al pulsar el botón Guardar o con Ctrl+S.
 function saveNow() {
   clearTimeout(saveTimer);
   if (supabaseUrl && supabaseKey) syncToSheets();
   else showToast("💾 Guardado localmente");
 }
 
-// ─── ROW HELPERS ──────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// GESTIÓN DE FILAS
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Añade una fila vacía al principio de la lista.
+// Las filas vacías son las que aparecen como "Nueva película…".
+// isEmpty:true significa que aún no tiene título confirmado.
 function addEmptyRow() {
   rows.unshift({
     id: nextId++,
@@ -1595,6 +1713,8 @@ function addEmptyRow() {
   });
 }
 
+// Devuelve las filas ordenadas: primero las vacías, luego las rellenas
+// ordenadas por fecha de entrada (más reciente primero).
 function getSorted() {
   const empty  = rows.filter(r => r.isEmpty);
   const filled = rows.filter(r => !r.isEmpty)
@@ -1602,8 +1722,13 @@ function getSorted() {
   return [...empty, ...filled];
 }
 
-// ─── RENDER ───────────────────────────────────
-// ─── ROW HTML BUILDER ─────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER (dibujar la tabla en pantalla)
+// render() reconstruye toda la tabla HTML con los datos actuales.
+// Se llama cada vez que cambia algo (un botón, un texto, un filtro...).
+// También llama a renderMobile() para actualizar las tarjetas en móvil.
+// ═══════════════════════════════════════════════════════════════════════════
+
 function render() {
   const tbody  = document.getElementById("tbody");
   const sorted = getSorted();
@@ -1722,7 +1847,12 @@ function render() {
   renderMobile();
 }
 
-// ─── MOBILE RENDER ────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER MÓVIL (tarjetas)
+// En pantallas pequeñas (≤768px) se oculta la tabla y se muestran tarjetas.
+// Cada tarjeta contiene toda la información de una película.
+// ═══════════════════════════════════════════════════════════════════════════
+
 function renderMobile() {
   const container = document.getElementById("cardsMobile");
   if (!container) return;
@@ -1813,7 +1943,13 @@ function renderMobile() {
   });
 }
 
-// ─── BACKUP ───────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// COPIA DE SEGURIDAD
+// Permite exportar todos los datos a un archivo JSON local
+// e importarlos de vuelta en caso de necesidad.
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Genera un archivo JSON con todas las películas y lo descarga al ordenador.
 function exportBackup() {
   const data = rows.filter(r => !r.isEmpty);
   const json = JSON.stringify({ version: "v1.15.3", date: new Date().toISOString(), rows: data }, null, 2);
@@ -1828,6 +1964,8 @@ function exportBackup() {
   showToast("✓ Backup exportado correctamente");
 }
 
+// Lee un archivo JSON exportado previamente y restaura los datos.
+// Sobrescribe los datos actuales con los del archivo importado.
 function importBackup(input) {
   const file = input.files[0];
   if (!file) return;
@@ -1862,7 +2000,13 @@ document.getElementById("searchInput").addEventListener("blur", function() {
   document.querySelector(".search-wrap").classList.remove("focused");
 });
 
-// ─── MOBILE SCROLL GUARD ──────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// PROTECCIÓN CONTRA SCROLL ACCIDENTAL EN MÓVIL
+// En móvil, al deslizar para hacer scroll, a veces se activan botones
+// sin querer. Este sistema detecta si el dedo se movió antes de soltarlo.
+// Si touchMoved es true, el toque se considera scroll y no activa el botón.
+// ═══════════════════════════════════════════════════════════════════════════
+
 let touchStartY = 0;
 let touchStartX = 0;
 let touchMoved  = false;
@@ -1877,6 +2021,10 @@ document.addEventListener("touchmove", () => {
   touchMoved = true;
 }, { passive: true });
 
+// Añade los listeners de clic y clic largo a un botón de sala (S1-S5).
+// Clic corto → cicla entre estados (rojo → amarillo → verde → rojo).
+// Clic largo (~600ms) → activa estado Error (azul).
+// En móvil, si hay scroll en curso, no hace nada.
 function attachProjListeners(btn, rowId, idx) {
   let pressTimer   = null;
   let didLongPress = false;
@@ -1920,7 +2068,13 @@ function attachProjListeners(btn, rowId, idx) {
   btn.addEventListener("touchstart",  startPress, { passive:false });
 }
 
-// ─── SALA ACTIONS ─────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// ACCIONES DE SALA (botones S1-S5)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Cambia el estado de una sala al siguiente en el ciclo:
+// Rojo (0) → Amarillo (1) → Verde (2) → Rojo (0)
+// Si está en Error (3), vuelve a Rojo y borra la nota de error.
 function cycleProj(id, idx) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
@@ -1934,6 +2088,8 @@ function cycleProj(id, idx) {
   render(); scheduleSave(id);
 }
 
+// Activa el estado Error (azul) en una sala.
+// Se llama al mantener pulsado el botón de sala durante 600ms.
 function activateError(id, idx) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
@@ -1942,6 +2098,7 @@ function activateError(id, idx) {
   render(); scheduleSave(id);
 }
 
+// Guarda la nota de error que se escribe debajo de un botón en estado Error.
 function updateErrNote(id, idx, value) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
@@ -1950,7 +2107,13 @@ function updateErrNote(id, idx, value) {
   scheduleSave(id);
 }
 
-// ─── PELICULA ─────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// CAMPO PELÍCULA
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Se llama en cada tecla mientras se escribe el título.
+// Actualiza el valor en memoria y marca cambios pendientes
+// para que el auto-reload no borre lo que se está escribiendo.
 function typingPelicula(id, value) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
@@ -1959,6 +2122,9 @@ function typingPelicula(id, value) {
   if (supabaseUrl && supabaseKey) setPendingState();
 }
 
+// Se llama al salir del campo de título (blur) o pulsar Enter.
+// Si hay texto: activa la fila (isEmpty → false) y registra la fecha.
+// Si se borra el texto y la fila estaba vacía: la elimina.
 function commitPelicula(id, value) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
@@ -1977,7 +2143,12 @@ function commitPelicula(id, value) {
   render(); scheduleSave(id);
 }
 
-// ─── ENCRIPTACION ─────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// BOTONES DE CICLO (Encriptación, Formato, Soporte)
+// Cada clic avanza al siguiente estado en el ciclo del botón.
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Cicla el estado de Encriptación: — → LIBRE → KDMs → —
 function cycleEnc(id) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
@@ -1989,7 +2160,7 @@ function cycleEnc(id) {
   render(); scheduleSave(id);
 }
 
-// ─── FORMATO (new) ────────────────────────────
+// Cicla el estado de Formato: — → Flat → Scope → Otro → —
 function cycleFmt2(id) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
@@ -2006,7 +2177,11 @@ function updateFmt2OtroText(id, value) {
   if (row) { row.fmt2OtroText = value; scheduleSave(id); }
 }
 
-// ─── NOTAS ────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// CAMPOS DE TEXTO (Notas y Archivo)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Guarda el contenido del campo Notas al escribir.
 function handleNotasChange(id, input) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
@@ -2019,7 +2194,7 @@ function handleNotasChange(id, input) {
   scheduleSave(id);
 }
 
-// ─── ARCHIVO ──────────────────────────────────
+// Guarda el contenido del campo Archivo al escribir.
 function handleArchivoChange(id, input) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
@@ -2032,7 +2207,7 @@ function handleArchivoChange(id, input) {
   scheduleSave(id);
 }
 
-// ─── FORMAT ───────────────────────────────────
+// Cicla el estado de Soporte: — → Físico → Remoto → Otro → —
 function cycleFmt(id) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
@@ -2044,17 +2219,24 @@ function cycleFmt(id) {
   render(); scheduleSave(id);
 }
 
+// Guarda el texto del campo "Especificar" cuando Soporte está en "Otro".
 function updateOtroText(id, value) {
   const row = rows.find(r => r.id === id);
   if (row) { row.otroText = value; scheduleSave(id); }
 }
 
-// ─── REMOVE / ADD ─────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// AÑADIR Y ELIMINAR FILAS
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Elimina una fila de la lista por su ID.
 function removeRow(id) {
   rows = rows.filter(r => r.id !== id);
   render(); scheduleSave(undefined);
 }
 
+// Añade una fila vacía manualmente (botón "+ Añadir fila").
+// En móvil, muestra la tarjeta vacía y enfoca el campo de título.
 function manualAddRow() {
   addEmptyRow();
   render();
@@ -2073,7 +2255,11 @@ function manualAddRow() {
   }
 }
 
-// ─── HELPERS ──────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// FUNCIONES AUXILIARES
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Convierte una fecha ISO a formato legible "dd/mm hh:mm".
 function formatDate(iso) {
   const d   = new Date(iso);
   const day = String(d.getDate()).padStart(2,"0");
@@ -2083,10 +2269,14 @@ function formatDate(iso) {
   return `${day}/${mon} ${hr}:${min}`;
 }
 
+// Escapa caracteres especiales HTML para evitar problemas al insertar
+// texto del usuario dentro de HTML (protección básica contra inyección).
 function escHtml(s) {
   return (s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
 }
 
+// Muestra un mensaje temporal en la esquina inferior de la pantalla.
+// Desaparece automáticamente después de 3.5 segundos.
 function showToast(msg) {
   const t = document.getElementById("toast");
   t.textContent = msg; t.classList.add("show");
@@ -2097,7 +2287,11 @@ function showToast(msg) {
 function openHelp()  { document.getElementById("helpOverlay").classList.add("open"); }
 function closeHelp() { document.getElementById("helpOverlay").classList.remove("open"); }
 
-// ─── MODAL ────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// MODAL DE CONFIGURACIÓN (⚙ Supabase)
+// Permite introducir la URL y clave de Supabase y el nombre del ordenador.
+// ═══════════════════════════════════════════════════════════════════════════
+
 function openConfig() {
   document.getElementById("inputDeviceName").value = localStorage.getItem("device_name") || "";
   document.getElementById("inputSupabaseUrl").value = supabaseUrl;
@@ -2105,6 +2299,8 @@ function openConfig() {
   document.getElementById("modalOverlay").classList.add("open");
 }
 function closeConfig() { document.getElementById("modalOverlay").classList.remove("open"); }
+// Guarda las credenciales de Supabase y el nombre del ordenador en localStorage.
+// Luego reconecta con Supabase y recarga los datos.
 function saveConfig() {
   const deviceName = document.getElementById("inputDeviceName").value.trim();
   supabaseUrl = document.getElementById("inputSupabaseUrl").value.trim();
@@ -2120,7 +2316,13 @@ function saveConfig() {
   }
 }
 
-// ─── POPOVER ──────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// POPOVER (tooltip al pasar el ratón)
+// Muestra el texto completo de los campos Archivo y Notas
+// cuando el contenido es demasiado largo para verse en la celda.
+// Aparece con un pequeño retraso de 300ms para no molestar.
+// ═══════════════════════════════════════════════════════════════════════════
+
 const popover = document.getElementById("popover");
 let popoverTimer = null;
 
@@ -2141,7 +2343,10 @@ function ocultarPopover() {
   popover.classList.remove("visible");
 }
 
-// ─── KEYBOARD SHORTCUTS ───────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// ATAJOS DE TECLADO
+// Ctrl+S (o Cmd+S en Mac) → guarda inmediatamente en Supabase.
+// ═══════════════════════════════════════════════════════════════════════════
 document.addEventListener("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === "s") {
     e.preventDefault();
@@ -2149,7 +2354,12 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// ─── INIT ─────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// INICIALIZACIÓN
+// Esto se ejecuta una sola vez al cargar la página.
+// Orden: tema visual → Supabase → cargar datos → intervalos de polling.
+// ═══════════════════════════════════════════════════════════════════════════
+
 initTheme();
 initSupabase();
 if (supabaseUrl && supabaseKey) { setSyncStatus("syncing","Conectando…"); loadFromSheets(); }

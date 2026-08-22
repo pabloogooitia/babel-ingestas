@@ -40,7 +40,7 @@ Este software se proporciona **tal cual**, sin garantías de ningún tipo, expre
 
 ## Sobre esta herramienta
 
-**Lista de Ingestas** es una herramienta interna desarrollada para Cines Babel. Gestiona el seguimiento de ingestas de películas con estado por sala (S1–S5), filtros, modo oscuro/claro y sincronización con Google Sheets vía Apps Script. Diseñada para funcionar en red interna con soporte para navegadores legacy.
+**Lista de Ingestas** es una herramienta de gestión de stock de películas para cines. Gestiona el seguimiento de ingestas de películas con estado por sala (S1–S5), filtros, modo oscuro/claro y sincronización en la nube para mantener los datos actualizados en diferentes dispositivos.
 
 ---
 

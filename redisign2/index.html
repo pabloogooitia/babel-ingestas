@@ -14,6 +14,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
+    @font-face {
+      font-family: 'ABCSolar';
+      src: url('ABCSolarDisplay-Extrabold-Trial.otf') format('opentype');
+      font-weight: 800;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'ABCOracle';
+      src: url('ABCOracleTriple-Light-Trial.otf') format('opentype');
+      font-weight: 300;
+      font-style: normal;
+    }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -102,13 +114,31 @@
       gap: 16px;
     }
 
-    .header-left { display: flex; align-items: center; gap: 0; }
+    .header-left { display: flex; align-items: center; gap: 11px; }
+
+    .header-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 7px;
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .header-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
 
     h1 {
-      font-size: 1rem;
+      font-family: 'ABCSolar', 'Inter', sans-serif;
+      font-size: 1.05rem;
       font-weight: 800;
       color: var(--header-text);
-      letter-spacing: -0.02em;
+      letter-spacing: -0.01em;
       line-height: 1;
     }
 
@@ -117,23 +147,6 @@
       align-items: center;
       gap: 12px;
     }
-
-    /* Date range pill */
-    .date-range-pill {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 6px;
-      padding: 6px 12px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: rgba(255,255,255,0.9);
-      letter-spacing: 0.01em;
-      white-space: nowrap;
-    }
-    .date-range-pill svg { opacity: 0.6; flex-shrink: 0; }
 
     /* Sync status */
     .sync-status {
@@ -163,10 +176,11 @@
 
     /* Header version */
     .header-version {
-      font-size: 0.65rem;
-      font-weight: 500;
+      font-family: 'ABCOracle', 'Inter', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 300;
       color: rgba(255,255,255,0.3);
-      letter-spacing: 0.02em;
+      letter-spacing: 0.03em;
       white-space: nowrap;
     }
 
@@ -702,7 +716,7 @@
       main { padding: 12px 12px 90px; }
       .header { padding: 0 14px; gap: 8px; }
       h1 { font-size: 0.88rem; white-space: nowrap; }
-      .date-range-pill, .header-version { display: none; }
+      .header-version { display: none; }
       .sync-status { font-size: 0.65rem; padding: 5px 10px; }
       .header-right {
         overflow-x: auto; flex-wrap: nowrap; flex-shrink: 1;
@@ -833,13 +847,12 @@
 
 <div class="header">
   <div class="header-left">
+    <div class="header-icon">
+      <img src="icon.png" alt="Cines Babel" width="32" height="32"/>
+    </div>
     <h1>Lista de Ingestas</h1>
   </div>
   <div class="header-right">
-    <div class="date-range-pill" id="dateRangePill">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <span id="dateRangeText">—</span>
-    </div>
     <div class="sync-status">
       <div class="sync-dot local" id="syncDot"></div>
       <span id="syncText">Sin conectar</span>
@@ -1498,26 +1511,6 @@ function getSorted() {
   return [...empty,...filled];
 }
 
-// ── DATE RANGE DISPLAY ──
-function updateDateRange() {
-  const filled = rows.filter(r => !r.isEmpty && r.date);
-  if (filled.length === 0) { document.getElementById("dateRangeText").textContent = "—"; return; }
-  const dates = filled.map(r => new Date(r.date)).filter(d => !isNaN(d));
-  if (dates.length === 0) { document.getElementById("dateRangeText").textContent = "—"; return; }
-  const min = new Date(Math.min(...dates));
-  const max = new Date(Math.max(...dates));
-  const fmt = (d) => {
-    const days = ["D","L","M","X","J","V","S"];
-    const mons = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-    return `${days[d.getDay()]}. ${d.getDate()} ${mons[d.getMonth()]}`;
-  };
-  if (min.toDateString() === max.toDateString()) {
-    document.getElementById("dateRangeText").textContent = fmt(min);
-  } else {
-    document.getElementById("dateRangeText").textContent = `${fmt(min)} — ${fmt(max)}`;
-  }
-}
-
 // ── RENDER ──
 function render() {
   const tbody  = document.getElementById("tbody");
@@ -1614,7 +1607,6 @@ function render() {
 
   const n = rows.filter(r => !r.isEmpty).length;
   document.getElementById("counter").textContent = n === 0 ? "0 películas" : `${n} película${n!==1?"s":""}`;
-  updateDateRange();
   renderMobile();
 }
 

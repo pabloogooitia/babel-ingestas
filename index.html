@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas — Cines Babel · v1.16</title>
+  <title>Ingestas — Cines Babel · v1.17</title>
   <link rel="icon" href="icon.png?v=2"/>
   <link rel="apple-touch-icon" href="icon.png?v=2"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -43,7 +43,8 @@
       --p-off:      #ff8a80;
       --p-copy:     #ffd740;
       --p-ok:       #69f0ae;
-      --p-err:      #82b1ff;
+      --p-falta:    #82b1ff;
+      --p-err:      #a259ff;
     }
 
     body.dark {
@@ -75,7 +76,8 @@
       --p-off:      #c62828;
       --p-copy:     #f9a825;
       --p-ok:       #2e7d32;
-      --p-err:      #1565c0;
+      --p-falta:    #1565c0;
+      --p-err:      #6d28d9;
     }
 
     body {
@@ -283,12 +285,26 @@
     /* Estado */
     .filter-chip.fc-nocopiado { background: var(--p-off);  color: #7a1a10; border-color: var(--p-off); }
     .filter-chip.fc-copiando  { background: var(--p-copy); color: #7a5a00; border-color: var(--p-copy); }
-    .filter-chip.fc-listo     { background: var(--p-ok);   color: #0a5a28; border-color: var(--p-ok); }
-    .filter-chip.fc-error     { background: var(--p-err);  color: #0a2a7a; border-color: var(--p-err); }
+    .filter-chip.fc-listo     { background: var(--p-ok);    color: #0a5a28; border-color: var(--p-ok); }
+    .filter-chip.fc-falta     { background: var(--p-falta); color: #0a2a7a; border-color: var(--p-falta); }
+    .filter-chip.fc-error     { background: var(--p-err);   color: #ffffff; border-color: var(--p-err); }
     body.dark .filter-chip.fc-nocopiado { color: #ffb3ae; }
     body.dark .filter-chip.fc-copiando  { color: #ffe08a; }
     body.dark .filter-chip.fc-listo     { color: #a0f0c0; }
-    body.dark .filter-chip.fc-error     { color: #b0c8ff; }
+    body.dark .filter-chip.fc-falta     { color: #b0c8ff; }
+    body.dark .filter-chip.fc-error     { color: #ede4ff; }
+
+    /* Chip que muestra/oculta la columna Distribuidora.
+       Es neutro a propósito: no es un filtro, es un interruptor de vista. */
+    .filter-chip.fc-distri {
+      background: transparent; color: var(--text2);
+      border: 1px dashed var(--border); font-weight: 600;
+    }
+    .filter-chip.fc-distri:hover { border-color: var(--accent); color: var(--accent); }
+    .filter-chip.fc-distri.active {
+      background: var(--accent-soft); color: var(--accent);
+      border-style: solid; border-color: var(--accent);
+    }
 
     .filter-sep { width: 1px; height: 14px; background: var(--border); margin: 0 2px; flex-shrink: 0; }
 
@@ -441,6 +457,28 @@
     .notas-input:focus { background: var(--focus-bg); }
     .notas-input::placeholder { color: var(--text3); font-size: 0.68rem; }
 
+    /* ── DISTRIBUIDORA ──
+       La columna está OCULTA por defecto: solo se consulta una vez por
+       semana y el resto del tiempo sería ruido visual.
+       Se muestra añadiendo la clase .show-distri al <body> desde el
+       chip "⊞ Distribuidoras" de la barra de filtros. */
+    .col-distri { display: none; }
+    body.show-distri th.col-distri,
+    body.show-distri td.col-distri { display: table-cell; }
+    /* En la tarjeta móvil es un bloque más de la rejilla, no una celda */
+    body.show-distri .card-m-field.col-distri { display: block; }
+    body.show-distri .card-m-fields { grid-template-columns: 1fr 1fr 1fr; }
+
+    .distri-input {
+      background: transparent; border: none; color: var(--text3);
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.68rem;
+      width: 100%; padding: 3px 6px; outline: none; border-radius: 6px;
+      transition: background 0.12s, color 0.15s, font-size 0.15s; user-select: text;
+    }
+    .distri-input:focus, .distri-input.has-text { color: var(--text2); font-size: 0.76rem; font-weight: 600; }
+    .distri-input:focus { background: var(--focus-bg); }
+    .distri-input::placeholder { color: var(--text3); font-size: 0.68rem; }
+
     /* ── FORMATO LEGEND ── */
     .sala-cell { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 
@@ -453,25 +491,44 @@
     }
     .proj-btn:hover { transform: scale(1.15); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
     .proj-btn:active { transform: scale(0.88); }
-    .proj-btn.pressing { animation: ring-grow 0.6s linear forwards; }
+
+    /* Pulsación larga en dos tiempos.
+       Tramo 1 (0 → 600ms): anillo azul creciendo. Al llegar, el botón
+       se pone azul (Falta) mientras sigues pulsando.
+       Tramo 2 (600 → 1400ms): anillo morado creciendo. Al llegar, el
+       botón se pone morado (Error).
+       El color cambia EN VIVO para que no tengas que calibrar a ciegas:
+       sueltas cuando ves el color que quieres. */
+    .proj-btn.pressing  { animation: ring-grow 0.6s linear forwards; }
+    .proj-btn.pressing2 { animation: ring-grow-err 0.8s linear forwards; }
     @keyframes ring-grow {
       0%   { box-shadow: 0 0 0 0px rgba(63,127,240,0.6); }
       100% { box-shadow: 0 0 0 8px rgba(63,127,240,0); }
     }
+    @keyframes ring-grow-err {
+      0%   { box-shadow: 0 0 0 0px rgba(155,90,255,0.75); }
+      100% { box-shadow: 0 0 0 10px rgba(155,90,255,0); }
+    }
+    /* Vista previa mientras se mantiene pulsado (aún no guardado) */
+    .proj-btn.preview { outline: 2px dashed rgba(255,255,255,0.65); outline-offset: 2px; }
+
     .p0 { background: var(--p-off); }
     .p1 { background: var(--p-copy); }
     .p2 { background: var(--p-ok); }
-    .p3 { background: var(--p-err); }
+    .p3 { background: var(--p-falta); }
+    .p4 { background: var(--p-err); }
 
-    /* ── ERROR NOTE ── */
+    /* ── NOTA DE ERROR (solo estado morado) ── */
     .error-input {
       font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.6rem; font-weight: 500;
-      color: #82b1ff; background: rgba(13,71,161,0.12);
-      border: 1px solid rgba(130,177,255,0.3); border-radius: 5px;
+      color: #7c4dff; background: rgba(98,0,234,0.10);
+      border: 1px solid rgba(179,136,255,0.4); border-radius: 5px;
       padding: 2px 5px; outline: none; width: 56px;
       text-align: center; user-select: text;
     }
-    .error-input::placeholder { color: rgba(130,177,255,0.35); }
+    .error-input::placeholder { color: rgba(124,77,255,0.35); }
+    body.dark .error-input { color: #d8bcff; background: rgba(106,58,178,0.18); border-color: rgba(179,136,255,0.3); }
+    body.dark .error-input::placeholder { color: rgba(216,188,255,0.35); }
 
     /* ── ROW NUM ── */
     .row-num { font-size: 0.57rem; font-weight: 600; color: var(--text3); text-align: right; padding-right: 4px; user-select: none; min-width: 18px; }
@@ -828,6 +885,7 @@
       <div class="legend-item"><div class="legend-dot" style="background:var(--p-off)"></div>No copiado</div>
       <div class="legend-item"><div class="legend-dot" style="background:var(--p-copy)"></div>Copiando</div>
       <div class="legend-item"><div class="legend-dot" style="background:var(--p-ok)"></div>Listo</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--p-falta)"></div>Falta</div>
       <div class="legend-item"><div class="legend-dot" style="background:var(--p-err)"></div>Error</div>
     </div>
   </div>
@@ -836,7 +894,7 @@
     <div class="search-inner">
       <span class="search-icon">🔍</span>
       <input class="search-input" id="searchInput" type="text"
-        placeholder="Buscar por título, soporte, formato, notas, archivo o sala…"
+        placeholder="Buscar… separa varias películas con comas: grazia, balearic"
         oninput="applySearch(this.value)"/>
     </div>
     <span class="search-count" id="searchCount" style="display:none;"></span>
@@ -858,6 +916,7 @@
     <div class="filter-chip fc-nocopiado" onclick="toggleFilter('estado','nocopiado',this)">No copiado</div>
     <div class="filter-chip fc-copiando"  onclick="toggleFilter('estado','copiando',this)">Copiando</div>
     <div class="filter-chip fc-listo"     onclick="toggleFilter('estado','listo',this)">Listo</div>
+    <div class="filter-chip fc-falta"     onclick="toggleFilter('estado','falta',this)">Falta</div>
     <div class="filter-chip fc-error"     onclick="toggleFilter('estado','error',this)">Error</div>
     <div class="filter-sep"></div>
     <div class="filter-chip fc-s1" onclick="toggleFilter('sala','0',this)">S1</div>
@@ -865,6 +924,11 @@
     <div class="filter-chip fc-s3" onclick="toggleFilter('sala','2',this)">S3</div>
     <div class="filter-chip fc-s4" onclick="toggleFilter('sala','3',this)">S4</div>
     <div class="filter-chip fc-s5" onclick="toggleFilter('sala','4',this)">S5</div>
+    <div class="filter-sep"></div>
+    <!-- Este chip NO filtra: muestra u oculta la columna Distribuidora.
+         Se guarda por ordenador en localStorage. -->
+    <div class="filter-chip fc-distri" id="chipDistri" onclick="toggleDistribuidora()"
+         title="Mostrar u ocultar la columna Distribuidora">⊞ Distribuidoras</div>
   </div>
 
   <div class="table-wrap">
@@ -878,6 +942,7 @@
           <th class="center" style="width:66px">Encriptación</th>
           <th class="center" style="width:66px">Formato</th>
           <th style="width:130px">Notas</th>
+          <th style="width:150px" class="col-distri">Distribuidora</th>
           <th style="width:140px">Archivo</th>
           <th class="center" style="width:48px;padding:11px 0;">S1</th>
           <th class="center" style="width:48px;padding:11px 0;">S2</th>
@@ -942,6 +1007,11 @@
         </div>
 
         <div class="help-row" style="margin-top:10px;">
+          <span style="font-size:0.82rem;margin-top:1px;">🏢</span>
+          <span><strong style="color:var(--text);">Distribuidora</strong> — Columna <strong style="color:var(--text);">oculta por defecto</strong>, porque normalmente solo se consulta una vez por semana. Para mostrarla pulsa el botón <strong style="color:var(--text);">⊞ Distribuidoras</strong> al final de la barra de filtros. La preferencia se guarda en cada ordenador, así que si la dejas visible seguirá ahí la próxima vez. El buscador encuentra por distribuidora aunque la columna esté oculta.</span>
+        </div>
+
+        <div class="help-row" style="margin-top:10px;">
           <span style="font-size:0.82rem;margin-top:1px;">📄</span>
           <span><strong style="color:var(--text);">Archivo</strong> — Nombre del archivo recibido. Al pasar el ratón por encima se muestra el nombre completo si es largo.</span>
         </div>
@@ -959,8 +1029,16 @@
           <span><strong style="color:var(--text);">Verde</strong> — Listo. La película ha sido copiada correctamente en esa sala.</span>
         </div>
         <div class="help-row">
+          <div class="help-dot" style="background:var(--p-falta);"></div>
+          <span><strong style="color:var(--text);">Azul</strong> — Falta. Esa sala necesita la película y aún no está ingestada. Mantén el botón pulsado <strong style="color:var(--text);">~0,6 s</strong>: verás que se pone azul sin soltar. Suéltalo ahí.</span>
+        </div>
+        <div class="help-row">
           <div class="help-dot" style="background:var(--p-err);"></div>
-          <span><strong style="color:var(--text);">Azul</strong> — Error. Mantén el botón pulsado (~0,6s) para marcarlo. Aparece un campo opcional para anotar el tipo de error.</span>
+          <span><strong style="color:var(--text);">Morado</strong> — Error. Algo ha fallado en la ingesta. Desde el azul, <strong style="color:var(--text);">sigue manteniendo pulsado</strong> hasta ~1,4 s y el botón pasará a morado. Suéltalo ahí. Aparece un campo opcional para anotar qué ha fallado.</span>
+        </div>
+        <div class="help-row" style="margin-top:8px;">
+          <span style="font-size:0.82rem;margin-top:1px;">💡</span>
+          <span>No hace falta calcular el tiempo: el botón <strong style="color:var(--text);">cambia de color mientras lo mantienes pulsado</strong>. Suelta en cuanto veas el color que quieres. Un clic corto sobre azul o morado devuelve la sala a rojo.</span>
         </div>
       </div>
 
@@ -982,7 +1060,7 @@
 
         <div class="help-row" style="margin-top:10px;">
           <span style="font-size:0.82rem;margin-top:1px;">🔍</span>
-          <span><strong style="color:var(--text);">Buscador</strong> — Filtra filas en tiempo real por título, soporte, formato, notas, archivo o estado de sala. Por ejemplo, escribe "scope" para ver todas las películas en ese formato, o "listo" para ver las completamente copiadas.</span>
+          <span><strong style="color:var(--text);">Buscador</strong> — Filtra filas en tiempo real por título, soporte, formato, encriptación, notas, distribuidora, archivo o estado de sala. Por ejemplo, escribe "scope" para ver todas las películas en ese formato, o "listo" para ver las completamente copiadas.<br/><strong style="color:var(--text);">Varias películas a la vez:</strong> sepáralas con comas. Escribir <em>grazia, balearic, tafiti</em> muestra las tres de golpe. Sirve para repasar de una tacada una lista de títulos que te hayan pasado.</span>
         </div>
 
         <div class="help-row" style="margin-top:10px;">
@@ -1021,7 +1099,7 @@
       <!-- CRÉDITOS -->
       <div class="help-credits">
         <strong>Lista de Ingestas — Cines Babel</strong><br>
-        Versión actual: <strong>v1.16</strong><br>
+        Versión actual: <strong>v1.17</strong><br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1067,7 +1145,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>v1.16 · Diseño por Pablo Goitia</footer>
+<footer>v1.17 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1124,6 +1202,29 @@ function toggleFilter(group, value, el) {
   render();
 }
 
+// ── COLUMNA DISTRIBUIDORA ──────────────────────────────────────────────────
+// No es un filtro: solo muestra u oculta la columna.
+// Está oculta por defecto porque las distribuidoras se consultan una vez por
+// semana y el resto del tiempo solo añadirían ruido visual a la tabla.
+// La preferencia se guarda en localStorage, así que es POR ORDENADOR:
+// cada equipo decide si la ve, y no se pierde al recargar la página.
+
+function toggleDistribuidora() {
+  const visible = !document.body.classList.contains("show-distri");
+  document.body.classList.toggle("show-distri", visible);
+  document.getElementById("chipDistri").classList.toggle("active", visible);
+  try { localStorage.setItem("show_distribuidora", visible ? "1" : "0"); } catch(e) {}
+}
+
+// Restaura el estado de la columna al abrir la página.
+function initDistribuidora() {
+  let visible = false;
+  try { visible = localStorage.getItem("show_distribuidora") === "1"; } catch(e) {}
+  document.body.classList.toggle("show-distri", visible);
+  const chip = document.getElementById("chipDistri");
+  if (chip) chip.classList.toggle("active", visible);
+}
+
 // Comprueba si una fila cumple TODOS los filtros activos.
 // Si algún filtro no se cumple, la fila no se muestra.
 // El filtro de sala muestra la película si ESA sala está en verde o amarillo.
@@ -1145,7 +1246,7 @@ function rowMatchesFilters(row) {
   }
   // Estado sala — muestra si AL MENOS UNA sala tiene ese estado
   if (activeFilters.estado) {
-    const stateMap = { nocopiado: 0, copiando: 1, listo: 2, error: 3 };
+    const stateMap = { nocopiado: 0, copiando: 1, listo: 2, falta: 3, error: 4 };
     const target = stateMap[activeFilters.estado];
     if (!(row.proj || []).some(p => p === target)) return false;
   }
@@ -1183,16 +1284,26 @@ function updateSearchCount() {
 // formato, encriptación y estado de las salas.
 // ═══════════════════════════════════════════════════════════════════════════
 
+// searchQuery = lo que hay escrito en la barra (para saber si está vacía)
+// searchTerms = la consulta partida por comas, ya limpia y en minúsculas
 let searchQuery = "";
+let searchTerms = [];
 
 function applySearch(value) {
   searchQuery = value.trim().toLowerCase();
+  // Separa por comas, quita espacios sobrantes y descarta términos vacíos
+  // (así "grazia, , balearic," funciona igual que "grazia, balearic")
+  searchTerms = searchQuery
+    .split(",")
+    .map(t => t.trim())
+    .filter(t => t.length > 0);
   updateSearchCount();
   render();
 }
 
 function clearSearch() {
   searchQuery = "";
+  searchTerms = [];
   document.getElementById("searchInput").value = "";
   // Clear all active filters
   Object.keys(activeFilters).forEach(g => {
@@ -1205,38 +1316,43 @@ function clearSearch() {
   render();
 }
 
-// Comprueba si una fila contiene el texto buscado en alguno de sus campos.
-function matchesSearch(row) {
-  if (!searchQuery) return true;
-  const q = searchQuery;
+// Comprueba si una fila contiene UN término concreto en alguno de sus campos.
+function filaContiene(row, q) {
+  // Campos de texto
+  if ((row.pelicula      || "").toLowerCase().includes(q)) return true;
+  if ((row.archivo       || "").toLowerCase().includes(q)) return true;
+  if ((row.notas         || "").toLowerCase().includes(q)) return true;
+  if ((row.distribuidora || "").toLowerCase().includes(q)) return true;
+  if ((row.otroText      || "").toLowerCase().includes(q)) return true;
+  if ((row.fmt2OtroText  || "").toLowerCase().includes(q)) return true;
 
-  // text fields
-  if ((row.pelicula   || "").toLowerCase().includes(q)) return true;
-  if ((row.archivo    || "").toLowerCase().includes(q)) return true;
-  if ((row.notas      || "").toLowerCase().includes(q)) return true;
-  if ((row.otroText   || "").toLowerCase().includes(q)) return true;
-  if ((row.fmt2OtroText || "").toLowerCase().includes(q)) return true;
+  // Etiqueta de Soporte (Físico, Remoto, Otro)
+  if (FMT_STATES[row.fmt || 0].key.toLowerCase().includes(q)) return true;
 
-  // soporte label
-  const soporteLabel = FMT_STATES[row.fmt || 0].key;
-  if (soporteLabel.toLowerCase().includes(q)) return true;
+  // Etiqueta de Formato (Flat, Scope, Otro)
+  if (FMT2_STATES[row.fmt2 || 0].label.toLowerCase().includes(q)) return true;
 
-  // formato label
-  const formatoLabel = FMT2_STATES[row.fmt2 || 0].label;
-  if (formatoLabel.toLowerCase().includes(q)) return true;
+  // Etiqueta de Encriptación (LIBRE, KDMs)
+  if (ENC_STATES[row.enc || 0].label.toLowerCase().includes(q)) return true;
 
-  // encriptacion label
-  const encLabel = ENC_STATES[row.enc || 0].label;
-  if (encLabel.toLowerCase().includes(q)) return true;
-
-  // sala states
-  const salaLabels = (row.proj || []).map(p => PROJ_LABELS[p].toLowerCase());
+  // Estados de las salas (No copiado, Copiando, Listo, Falta, Error)
+  const salaLabels = (row.proj || []).map(p => (PROJ_LABELS[p] || "").toLowerCase());
   if (salaLabels.some(l => l.includes(q))) return true;
 
-  // sala error notes
+  // Notas de error de las salas
   if ((row.projErr || []).some(e => (e || "").toLowerCase().includes(q))) return true;
 
   return false;
+}
+
+// Comprueba si una fila coincide con la búsqueda.
+// Se pueden buscar VARIAS películas a la vez separándolas por comas:
+//   "grazia, balearic, tafiti"  →  muestra las tres
+// Los términos se combinan con O lógico: basta con que la fila
+// coincida con uno de ellos para que aparezca.
+function matchesSearch(row) {
+  if (!searchTerms.length) return true;
+  return searchTerms.some(q => filaContiene(row, q));
 }
 
 // ─── CONFIG ───────────────────────────────────
@@ -1351,6 +1467,7 @@ function mapSupabaseRow(r) {
     pelicula:     r.pelicula      || "",
     archivo:      r.archivo       || "",
     notas:        r.notas         || "",
+    distribuidora:r.distribuidora || "",
     fmt:          r.fmt           || 0,
     otroText:     r.otro_text     || "",
     fmt2:         r.fmt2          || 0,
@@ -1445,9 +1562,27 @@ const ENC_STATES = [
   { key:"kdm",   label:"KDMs",  cls:"kdm" },
 ];
 
-const PROJ_CLASSES = ["p0","p1","p2","p3"];
-const PROJ_LABELS  = ["No copiado","Copiando","Listo","Error"];
-const LONG_PRESS_MS = 600;
+// Versión de la herramienta. Se usa al exportar la copia de seguridad.
+// OJO: al subir de versión hay que cambiarla también en el <title> de
+// arriba, en los créditos del modal de ayuda y en el pie de página.
+const APP_VERSION = "v1.17";
+
+// Estados de una sala (S1-S5):
+//   0 rojo     → No copiado
+//   1 amarillo → Copiando
+//   2 verde    → Listo
+//   3 azul     → Falta  (la sala necesita la película y aún no está ingestada)
+//   4 morado   → Error  (algo ha fallado; permite apuntar una nota)
+const PROJ_CLASSES = ["p0","p1","p2","p3","p4"];
+const PROJ_LABELS  = ["No copiado","Copiando","Listo","Falta","Error"];
+
+// Pulsación larga en dos tiempos sobre un botón de sala:
+//   mantener 600ms  → el botón se pone azul en vivo (Falta)
+//   seguir hasta 1400ms → el botón se pone morado (Error)
+// Se suelta en el color que se quiera. El cambio es solo visual
+// hasta que se suelta; ahí es cuando se guarda de verdad.
+const LONG_PRESS_MS     = 600;
+const LONG_PRESS_ERR_MS = 1400;
 
 let rows      = [];
 let nextId    = 1;
@@ -1484,6 +1619,20 @@ function migrateRow(row) {
   if (row.fmt2   === undefined) row.fmt2 = 0;
   if (row.fmt2OtroText === undefined) row.fmt2OtroText = "";
   if (row.projErr === undefined) row.projErr = ["","","","",""];
+  if (row.distribuidora === undefined) row.distribuidora = "";
+
+  // Migración v1.16 → v1.17:
+  // Antes el azul (estado 3) significaba "Error" y llevaba nota.
+  // Ahora el azul es "Falta" y el Error es morado (estado 4).
+  // Una sala que estaba en azul CON nota escrita era un error de verdad,
+  // así que se asciende a morado para no perder ni la nota ni el significado.
+  // Las que estaban en azul sin nota se quedan como "Falta", que es lo correcto.
+  if (Array.isArray(row.proj)) {
+    row.proj = row.proj.map((p, i) => {
+      if (p === 3 && (row.projErr[i] || "").trim() !== "") return 4;
+      return p;
+    });
+  }
   return row;
 }
 
@@ -1511,20 +1660,6 @@ function loadLocal() {
 // Guarda el estado actual de todas las filas en el navegador (localStorage).
 function saveLocal() { localStorage.setItem("cine_rows", JSON.stringify(rows)); }
 
-// ─── SHEETS SYNC ──────────────────────────────
-// Actualiza el indicador de estado en el header (punto de color + texto).
-// Estados: syncing (cargando), pending (cambios sin guardar),
-//          synced (guardado), error (error de conexión), local (sin Supabase).
-function setSyncStatus(state, text) {
-  document.getElementById("syncDot").className = "sync-dot " + state;
-  document.getElementById("syncText").textContent = text;
-  if (state === "synced" || state === "error") {
-    document.getElementById("btnSave").classList.remove("has-changes");
-    clearPendingState();
-  }
-}
-
-// ─── SYNC ─────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════
 // SISTEMA DE GUARDADO Y SINCRONIZACIÓN
 // hasPendingChanges: true si hay cambios sin guardar en Supabase
@@ -1536,6 +1671,9 @@ let hasPendingChanges = false;
 let saveTimer = null;
 let pendingRowIds = new Set(); // IDs de filas modificadas desde el último guardado
 
+// Actualiza el indicador de estado en la cabecera (punto de color + texto).
+// Estados: syncing (cargando), pending (cambios sin guardar),
+//          synced (guardado), error (error de conexión), local (sin Supabase).
 function setSyncStatus(state, text) {
   document.getElementById("syncDot").className = "sync-dot " + state;
   document.getElementById("syncText").textContent = text;
@@ -1569,6 +1707,7 @@ function rowToRecord(r) {
     pelicula:     r.pelicula     || "",
     archivo:      r.archivo      || "",
     notas:        r.notas        || "",
+    distribuidora:r.distribuidora|| "",
     fmt:          r.fmt          || 0,
     otro_text:    r.otroText     || "",
     fmt2:         r.fmt2         || 0,
@@ -1706,7 +1845,7 @@ function addEmptyRow() {
     fmt:0, otroText:"",
     fmt2:0, fmt2OtroText:"",
     enc:0,
-    pelicula:"", archivo:"", notas:"",
+    pelicula:"", archivo:"", notas:"", distribuidora:"",
     proj:[0,0,0,0,0],
     projErr:["","","","",""],
     date:null, isEmpty:true,
@@ -1798,6 +1937,16 @@ function render() {
           onmouseenter="mostrarPopover(this,'${escHtml(row.notas||'')}')"
           onmouseleave="ocultarPopover()"/>
       </td>
+      <td class="col-distri">
+        <input class="distri-input ${row.distribuidora?'has-text':''}"
+          type="text" placeholder="distribuidora…"
+          value="${escHtml(row.distribuidora||'')}"
+          oninput="handleDistribuidoraChange(${row.id},this)"
+          onfocus="this.classList.add('has-text')"
+          onblur="if(!this.value)this.classList.remove('has-text')"
+          onmouseenter="mostrarPopover(this,'${escHtml(row.distribuidora||'')}')"
+          onmouseleave="ocultarPopover()"/>
+      </td>
       <td>
         <input class="archivo-input ${row.archivo?'has-text':''}"
           type="text" placeholder="archivo…"
@@ -1813,12 +1962,13 @@ function render() {
           <div class="sala-cell">
             <button class="proj-btn ${PROJ_CLASSES[p]}"
               id="pbtn-${row.id}-${i}"
-              title="S${i+1}: ${PROJ_LABELS[p]} · Mantén para marcar error"
+              title="S${i+1}: ${PROJ_LABELS[p]} · Mantén pulsado: azul = Falta, sigue manteniendo = Error"
             ></button>
-            ${p === 3 ? `
+            ${p === 4 ? `
               <input class="error-input"
                 type="text" placeholder="Nota…"
                 value="${escHtml((row.projErr||[])[i]||'')}"
+                title="${escHtml((row.projErr||[])[i]||'')}"
                 oninput="updateErrNote(${row.id},${i},this.value)"
                 onclick="event.stopPropagation()"/>
             ` : ""}
@@ -1883,7 +2033,7 @@ function renderMobile() {
       <div class="card-m-sala">
         <span class="card-m-sala-name">S${i+1}</span>
         <button class="proj-btn ${PROJ_CLASSES[p]}" id="mpbtn-${row.id}-${i}"></button>
-        ${p === 3 ? `<input class="error-input" type="text" placeholder="Nota…"
+        ${p === 4 ? `<input class="error-input" type="text" placeholder="Nota…"
           value="${escHtml((row.projErr||[])[i]||"")}"
           oninput="updateErrNote(${row.id},${i},this.value)"
           onclick="event.stopPropagation()"/>` : ""}
@@ -1926,6 +2076,11 @@ function renderMobile() {
           <input type="text" placeholder="—" value="${escHtml(row.notas||"")}"
             oninput="handleNotasChange(${row.id},this.value)"/>
         </div>
+        <div class="card-m-field col-distri">
+          <div class="card-m-field-label">Distribuidora</div>
+          <input type="text" placeholder="—" value="${escHtml(row.distribuidora||"")}"
+            oninput="handleDistribuidoraChange(${row.id},this.value)"/>
+        </div>
         <div class="card-m-field">
           <div class="card-m-field-label">Archivo</div>
           <input type="text" placeholder="—" value="${escHtml(row.archivo)}"
@@ -1952,7 +2107,7 @@ function renderMobile() {
 // Genera un archivo JSON con todas las películas y lo descarga al ordenador.
 function exportBackup() {
   const data = rows.filter(r => !r.isEmpty);
-  const json = JSON.stringify({ version: "v1.15.3", date: new Date().toISOString(), rows: data }, null, 2);
+  const json = JSON.stringify({ version: APP_VERSION, date: new Date().toISOString(), rows: data }, null, 2);
   const blob = new Blob([json], { type: "application/json" });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement("a");
@@ -2021,35 +2176,78 @@ document.addEventListener("touchmove", () => {
   touchMoved = true;
 }, { passive: true });
 
-// Añade los listeners de clic y clic largo a un botón de sala (S1-S5).
-// Clic corto → cicla entre estados (rojo → amarillo → verde → rojo).
-// Clic largo (~600ms) → activa estado Error (azul).
+// Pinta el botón de un color SIN guardar nada todavía.
+// Se usa como vista previa mientras se mantiene pulsado, para que
+// se vea a qué estado se va a saltar antes de soltar.
+function previewProjColor(btn, estado) {
+  PROJ_CLASSES.forEach(c => btn.classList.remove(c));
+  btn.classList.add(PROJ_CLASSES[estado], "preview");
+}
+
+// Pequeña vibración en móvil (en PC no hace nada).
+function vibrar(patron) {
+  if (navigator.vibrate) { try { navigator.vibrate(patron); } catch(e) {} }
+}
+
+// Añade los listeners de clic y pulsación larga a un botón de sala (S1-S5).
+//
+//   Clic corto               → cicla rojo → amarillo → verde → rojo
+//   Mantener 600ms           → Falta (azul)
+//   Mantener hasta 1400ms    → Error (morado)
+//
+// Mientras se mantiene pulsado el botón cambia de color en vivo, así que
+// se suelta cuando aparece el color deseado. Nada se guarda hasta soltar.
 // En móvil, si hay scroll en curso, no hace nada.
 function attachProjListeners(btn, rowId, idx) {
-  let pressTimer   = null;
-  let didLongPress = false;
+  let tFalta    = null;   // temporizador del primer tramo (→ azul)
+  let tError    = null;   // temporizador del segundo tramo (→ morado)
+  let stage     = 0;      // 0 = clic corto, 1 = Falta, 2 = Error
+  let cancelado = false;  // true si el ratón se salió del botón sin soltar
+  const filaOriginal   = rows.find(r => r.id === rowId);
+  const estadoOriginal = (filaOriginal && filaOriginal.proj ? filaOriginal.proj : [])[idx] || 0;
 
   function startPress(e) {
     e.preventDefault();
-    didLongPress = false;
+    stage = 0;
+    cancelado = false;
     btn.classList.add("pressing");
-    pressTimer = setTimeout(() => {
-      didLongPress = true;
+
+    // Tramo 1: a los 600ms el botón se pone azul (Falta)
+    tFalta = setTimeout(() => {
+      stage = 1;
       btn.classList.remove("pressing");
-      activateError(rowId, idx);
+      btn.classList.add("pressing2");
+      previewProjColor(btn, 3);
+      vibrar(18);
     }, LONG_PRESS_MS);
 
-    // Listen for mouseup/touchend on document so render() doesn't lose the event
+    // Tramo 2: a los 1400ms el botón se pone morado (Error)
+    tError = setTimeout(() => {
+      stage = 2;
+      btn.classList.remove("pressing2");
+      previewProjColor(btn, 4);
+      vibrar([18, 50, 18]);
+    }, LONG_PRESS_ERR_MS);
+
+    // El listener de soltar va en document (no en el botón) porque
+    // render() destruye el botón y el evento se perdería.
     function onRelease(ev) {
       document.removeEventListener("mouseup",    onRelease);
       document.removeEventListener("touchend",   onRelease);
       document.removeEventListener("touchcancel",onRelease);
-      clearTimeout(pressTimer);
-      btn.classList.remove("pressing");
-      if (!didLongPress && !touchMoved) {
-        cycleProj(rowId, idx);
-      }
-      didLongPress = false;
+      clearTimeout(tFalta);
+      clearTimeout(tError);
+      btn.classList.remove("pressing", "pressing2", "preview");
+
+      // Si el ratón se salió del botón antes de soltar, se cancela todo:
+      // ni cicla ni marca Falta/Error. Es la forma estándar de echarse atrás
+      // después de haber empezado a pulsar sin querer.
+      if (cancelado) { cancelado = false; stage = 0; return; }
+
+      if      (stage === 2)  setProjEstado(rowId, idx, 4);   // Error
+      else if (stage === 1)  setProjEstado(rowId, idx, 3);   // Falta
+      else if (!touchMoved)  cycleProj(rowId, idx);          // clic corto
+      stage = 0;
     }
 
     document.addEventListener("mouseup",     onRelease);
@@ -2057,10 +2255,16 @@ function attachProjListeners(btn, rowId, idx) {
     document.addEventListener("touchcancel", onRelease);
   }
 
+  // Si el ratón se sale del botón sin soltar, se aborta la acción entera
+  // y el botón recupera su color original.
   function cancelPress() {
-    clearTimeout(pressTimer);
-    btn.classList.remove("pressing");
-    didLongPress = false;
+    clearTimeout(tFalta);
+    clearTimeout(tError);
+    cancelado = true;
+    btn.classList.remove("pressing", "pressing2");
+    if (stage > 0) previewProjColor(btn, estadoOriginal);
+    btn.classList.remove("preview");
+    stage = 0;
   }
 
   btn.addEventListener("mousedown",   startPress);
@@ -2072,13 +2276,14 @@ function attachProjListeners(btn, rowId, idx) {
 // ACCIONES DE SALA (botones S1-S5)
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Cambia el estado de una sala al siguiente en el ciclo:
+// Cambia el estado de una sala al siguiente en el ciclo con un clic corto:
 // Rojo (0) → Amarillo (1) → Verde (2) → Rojo (0)
-// Si está en Error (3), vuelve a Rojo y borra la nota de error.
+// Si está en Falta (3) o Error (4), el clic corto lo devuelve a Rojo
+// y borra la nota de error si la hubiera.
 function cycleProj(id, idx) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
-  if (row.proj[idx] === 3) {
+  if (row.proj[idx] >= 3) {
     row.proj[idx] = 0;
     if (!row.projErr) row.projErr = ["","","","",""];
     row.projErr[idx] = "";
@@ -2088,13 +2293,16 @@ function cycleProj(id, idx) {
   render(); scheduleSave(id);
 }
 
-// Activa el estado Error (azul) en una sala.
-// Se llama al mantener pulsado el botón de sala durante 600ms.
-function activateError(id, idx) {
+// Fija directamente una sala en un estado concreto.
+// La usa la pulsación larga al soltar: estado 3 (Falta) o 4 (Error).
+// Al pasar a Falta se borra cualquier nota previa, porque el azul
+// ya no lleva cuadro de texto.
+function setProjEstado(id, idx, estado) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
-  row.proj[idx] = 3;
+  row.proj[idx] = estado;
   if (!row.projErr) row.projErr = ["","","","",""];
+  if (estado !== 4) row.projErr[idx] = "";
   render(); scheduleSave(id);
 }
 
@@ -2178,7 +2386,9 @@ function updateFmt2OtroText(id, value) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// CAMPOS DE TEXTO (Notas y Archivo)
+// CAMPOS DE TEXTO (Notas, Distribuidora y Archivo)
+// Todos aceptan dos formas de llamada: con el elemento <input> (versión
+// de escritorio) o directamente con el texto (versión móvil).
 // ═══════════════════════════════════════════════════════════════════════════
 
 // Guarda el contenido del campo Notas al escribir.
@@ -2187,6 +2397,19 @@ function handleNotasChange(id, input) {
   if (!row) return;
   const value = typeof input === "string" ? input : input.value;
   row.notas = value;
+  if (typeof input !== "string") {
+    if (value) input.classList.add("has-text");
+    else input.classList.remove("has-text");
+  }
+  scheduleSave(id);
+}
+
+// Guarda el contenido del campo Distribuidora al escribir.
+function handleDistribuidoraChange(id, input) {
+  const row = rows.find(r => r.id === id);
+  if (!row) return;
+  const value = typeof input === "string" ? input : input.value;
+  row.distribuidora = value;
   if (typeof input !== "string") {
     if (value) input.classList.add("has-text");
     else input.classList.remove("has-text");
@@ -2357,10 +2580,11 @@ document.addEventListener("keydown", (e) => {
 // ═══════════════════════════════════════════════════════════════════════════
 // INICIALIZACIÓN
 // Esto se ejecuta una sola vez al cargar la página.
-// Orden: tema visual → Supabase → cargar datos → intervalos de polling.
+// Orden: tema visual → columna Distribuidora → Supabase → cargar datos.
 // ═══════════════════════════════════════════════════════════════════════════
 
 initTheme();
+initDistribuidora();
 initSupabase();
 if (supabaseUrl && supabaseKey) { setSyncStatus("syncing","Conectando…"); loadFromSheets(); }
 else                            { setSyncStatus("local","Sin conectar");  loadLocal(); }

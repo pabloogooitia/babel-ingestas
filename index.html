@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas — Cines Babel · v1.17</title>
+  <title>Ingestas — Cines Babel · v1.18</title>
   <link rel="icon" href="icon.png?v=2"/>
   <link rel="apple-touch-icon" href="icon.png?v=2"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -108,12 +108,31 @@
       pointer-events: none;
     }
     .header-left { display: flex; align-items: center; gap: 12px; }
+    /* ── LOGO DE LA CABECERA ──
+       Muestra icon.png (el mismo archivo que usa el icono de la app en
+       iOS y el favicon), que está en la carpeta del repositorio junto
+       a este HTML. Ocupa exactamente el mismo hueco de 36x36 que ocupaba
+       antes el distintivo azul con el emoji de la claqueta.
+       La imagen ya trae sus propias esquinas redondeadas (transparentes),
+       así que NO se le pone fondo: se vería un borde azul asomando. */
     .header-icon {
       width: 36px; height: 36px;
-      background: linear-gradient(135deg, #3f7ff0, #6fa8ff);
       border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
       font-size: 1rem; flex-shrink: 0;
+    }
+    .header-icon img {
+      width: 100%; height: 100%;
+      object-fit: contain; display: block;
+      /* drop-shadow sigue la silueta real de la imagen; box-shadow
+         dibujaría un rectángulo y se vería el borde por fuera. */
+      filter: drop-shadow(0 3px 8px rgba(0,0,0,0.38));
+    }
+    /* Reserva: si icon.png no está al lado del HTML (por ejemplo al abrirlo
+       suelto desde un pen), se vuelve al distintivo azul de siempre en vez
+       de mostrar una imagen rota. */
+    .header-icon.sin-imagen {
+      background: linear-gradient(135deg, #3f7ff0, #6fa8ff);
       box-shadow: 0 4px 14px rgba(63,127,240,0.45);
     }
     .header-titles { display: flex; flex-direction: column; gap: 1px; }
@@ -833,7 +852,18 @@
 
 <div class="header">
   <div class="header-left">
-    <div class="header-icon">🎬</div>
+    <!-- Logo: icon.png, el mismo archivo del repositorio que se usa como
+         favicon e icono de la app en iOS. El ?v=2 es para que el navegador
+         no se quede con una copia antigua en caché: si cambias la imagen,
+         sube ese número aquí y en las dos etiquetas <link> de arriba.
+         El onerror va escrito aquí dentro (y no como función aparte) porque
+         salta nada más fallar la carga, antes de que se haya leído el bloque
+         de código del final del archivo, donde estaría esa función.
+         Si falta icon.png, vuelve al distintivo azul con la claqueta. -->
+    <div class="header-icon">
+      <img src="icon.png?v=2" alt="Cines Babel"
+           onerror="this.parentNode.className='header-icon sin-imagen';this.parentNode.textContent='🎬';"/>
+    </div>
     <div class="header-titles">
       <span class="header-eyebrow">Cines Babel</span>
       <h1>Lista de Ingestas</h1>
@@ -1099,7 +1129,7 @@
       <!-- CRÉDITOS -->
       <div class="help-credits">
         <strong>Lista de Ingestas — Cines Babel</strong><br>
-        Versión actual: <strong>v1.17</strong><br>
+        Versión actual: <strong>v1.18</strong><br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1145,7 +1175,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>v1.17 · Diseño por Pablo Goitia</footer>
+<footer>v1.18 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1565,7 +1595,7 @@ const ENC_STATES = [
 // Versión de la herramienta. Se usa al exportar la copia de seguridad.
 // OJO: al subir de versión hay que cambiarla también en el <title> de
 // arriba, en los créditos del modal de ayuda y en el pie de página.
-const APP_VERSION = "v1.17";
+const APP_VERSION = "v1.18";
 
 // Estados de una sala (S1-S5):
 //   0 rojo     → No copiado

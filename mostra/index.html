@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas Mostra — Cines Babel · v1.1</title>
+  <title>Ingestas Mostra — Cines Babel · v1.2</title>
   <!-- Icono propio de la Mostra: mostra-icon.png, en esta misma carpeta
        (mostra/), junto al HTML. Se usa como favicon, icono de la app en iOS
        y logo de la cabecera. El ?v=1 evita que el navegador se quede con una
        copia vieja en caché: si cambias la imagen, sube ese número aquí y en
-       el <img> de la cabecera. -->
-  <link rel="icon" href="mostra-icon.png?v=1"/>
-  <link rel="apple-touch-icon" href="mostra-icon.png?v=1"/>
+       el <img> de la cabecera.
+       OJO: tiene que ser un PNG de verdad. Un .psd de Photoshop renombrado
+       a .png no lo muestra ningún navegador (en Photoshop: Archivo →
+       Exportar → Exportar como… → PNG). -->
+  <link rel="icon" type="image/png" href="mostra-icon.png?v=2"/>
+  <link rel="apple-touch-icon" href="mostra-icon.png?v=2"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
   <meta name="apple-mobile-web-app-title" content="Ingestas Mostra"/>
@@ -127,6 +130,7 @@
     .header-icon img {
       width: 100%; height: 100%;
       object-fit: contain; display: block;
+      border-radius: 10px;  /* mostra-icon.png es cuadrado: se le redondean las esquinas aquí */
       filter: drop-shadow(0 3px 8px rgba(0,0,0,0.38));
     }
     .header-icon.sin-imagen {
@@ -381,21 +385,36 @@
     .drag-handle svg { display: block; pointer-events: none; }
     body.is-dragging, body.is-dragging * { cursor: grabbing !important; user-select: none !important; }
     body.is-dragging .popover { display: none; }
-    tbody tr.main-row.dragging td {
-      background: var(--accent-soft) !important;
-      border-top: 2px solid var(--accent);
-      border-bottom: 2px solid var(--accent);
+
+    /* Hueco que deja la fila mientras se arrastra: marca dónde caerá */
+    tbody tr.main-row.drag-placeholder td {
+      background: var(--accent-dim) !important;
+      border-top: 2px dashed var(--accent);
+      border-bottom: 2px dashed var(--accent);
     }
-    tbody tr.main-row.dragging td:first-child { border-left: 2px solid var(--accent); }
-    tbody tr.main-row.dragging td:last-child  { border-right: 2px solid var(--accent); }
-    tbody tr.main-row.dragging .drag-handle,
-    .card-m.dragging .drag-handle { color: var(--accent); }
-    .card-m.dragging {
-      border-color: var(--accent);
-      box-shadow: 0 10px 28px rgba(0,0,0,0.16);
-      transform: scale(1.015);
-      position: relative; z-index: 5;
+    tbody tr.main-row.drag-placeholder td { color: transparent; }
+    tbody tr.main-row.drag-placeholder td > * { visibility: hidden; }
+    .card-m.drag-placeholder {
+      border: 2px dashed var(--accent);
+      background: var(--accent-dim);
     }
+    .card-m.drag-placeholder > * { visibility: hidden; }
+
+    /* Copia de la fila que va pegada al cursor */
+    .drag-ghost {
+      position: fixed; z-index: 1000;
+      pointer-events: none;
+      border-radius: 12px; overflow: hidden;
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      box-shadow: 0 18px 44px rgba(0,0,0,0.22), 0 4px 12px rgba(0,0,0,0.12);
+      transform: scale(1.01) rotate(-0.4deg);
+      opacity: 0.97;
+    }
+    .drag-ghost table { table-layout: fixed; width: 100%; }
+    .drag-ghost tr { background: var(--surface) !important; }
+    .drag-ghost .drag-handle { color: var(--accent); }
+    .drag-ghost.card-m { border-radius: 14px; }
 
     /* ── DATE ── */
     .date-cell {
@@ -931,7 +950,7 @@
 <div class="header">
   <div class="header-left">
     <div class="header-icon">
-      <img src="mostra-icon.png?v=1" alt="Mostra de València"
+      <img src="mostra-icon.png?v=2" alt="Mostra de València"
            onerror="this.parentNode.className='header-icon sin-imagen';this.parentNode.textContent='🎬';"/>
     </div>
     <div class="header-titles">
@@ -1208,7 +1227,7 @@
 
       <div class="help-credits">
         <strong>Ingestas Mostra — Cines Babel</strong><br>
-        Versión actual: <strong>v1.1</strong> · basada en Lista de Ingestas v1.18<br>
+        Versión actual: <strong>v1.2</strong> · basada en Lista de Ingestas v1.18<br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1254,7 +1273,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>Mostra v1.1 · Diseño por Pablo Goitia</footer>
+<footer>Mostra v1.2 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1277,9 +1296,10 @@
 //   podía llevarse por delante filas recién creadas en otro ordenador).
 // · Si falla el guardado, los cambios no se olvidan: se reintenta a los 30 s.
 // · v1.1: las filas se ordenan a mano arrastrándolas (campo "orden").
+// · v1.2: la fila arrastrada va pegada al cursor y las demás se deslizan.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = "mostra-v1.1";
+const APP_VERSION = "mostra-v1.2";
 const TABLE       = "mostra_peliculas";
 const LS = {
   rows:   "mostra_rows",
@@ -2011,9 +2031,14 @@ function archivosPanelHTML(row, prefix) {
 // Se hace con "pointer events", que funcionan igual con ratón y con dedo
 // (el arrastrar y soltar nativo del navegador no va bien en móvil).
 //
-// Mientras se arrastra, la fila agarrada NO se mueve en la página: se mueven
-// las demás a su alrededor. Si se moviera la propia fila, el navegador
-// podría "soltarla" a mitad de gesto, sobre todo en pantallas táctiles.
+// Cómo se ve:
+//  · Una COPIA de la fila ("fantasma") va pegada al cursor o al dedo.
+//  · En la lista queda su HUECO (recuadro discontinuo) marcando dónde caerá.
+//  · Las demás filas se deslizan para dejarle sitio.
+//
+// Por dentro, la fila original (el hueco) nunca se mueve de sitio en la
+// página: se mueven las demás a su alrededor. Si se moviera ella misma, el
+// navegador podría "soltarla" a mitad de gesto en pantallas táctiles.
 // Al soltar se lee el nuevo orden y se guarda solo la fila movida.
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -2055,16 +2080,21 @@ function startDrag(e, id) {
   const panelMovil = item.querySelector(".card-m-archivos");
   if (panelMovil) panelMovil.style.display = "none";
 
+  ocultarPopover();
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+
+  const r = item.getBoundingClientRect();
   drag = {
     id, item, container,
     x: e.clientX, y: e.clientY,
+    agarreY: e.clientY - r.top,   // a qué altura de la fila se ha cogido
     ordenInicial: itemsDe(container).map(el => el.dataset.id).join(","),
+    ghost: crearFantasma(item, r),
     raf: null,
   };
-  ocultarPopover();
-  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-  item.classList.add("dragging");
+  item.classList.add("drag-placeholder");
   document.body.classList.add("is-dragging");
+  moverFantasma();
   vibrar(12);
 
   document.addEventListener("pointermove",   onDragMove);
@@ -2073,61 +2103,107 @@ function startDrag(e, id) {
   drag.raf = requestAnimationFrame(autoScrollDrag);
 }
 
+// Crea la copia flotante de la fila. En la tabla hace falta envolver la
+// fila en una tabla propia con los mismos anchos de columna; en móvil
+// basta con copiar la tarjeta.
+function crearFantasma(item, r) {
+  const copia = item.cloneNode(true);
+  // Sin ids repetidos ni nada pulsable dentro de la copia
+  copia.querySelectorAll("[id]").forEach(el => el.removeAttribute("id"));
+  copia.classList.remove("expanded");
+  const panel = copia.querySelector(".card-m-archivos");
+  if (panel) panel.remove();
+
+  let ghost;
+  if (item.tagName === "TR") {
+    const anchos = [...item.children].map(td => td.getBoundingClientRect().width);
+    [...copia.children].forEach((td, i) => {
+      td.style.width = anchos[i] + "px";
+      td.style.boxShadow = "none";
+    });
+    const tabla = document.createElement("table");
+    const tb = document.createElement("tbody");
+    tb.appendChild(copia);
+    tabla.appendChild(tb);
+    ghost = document.createElement("div");
+    ghost.appendChild(tabla);
+  } else {
+    ghost = copia;
+  }
+  ghost.classList.add("drag-ghost");
+  ghost.style.width  = r.width + "px";
+  ghost.style.left   = r.left + "px";
+  ghost.style.top    = r.top + "px";
+  document.body.appendChild(ghost);
+  return ghost;
+}
+
+// La copia sigue al puntero en vertical. En horizontal se queda en su
+// columna, que es una lista y así es más fácil apuntar.
+function moverFantasma() {
+  drag.ghost.style.top = (drag.y - drag.agarreY) + "px";
+}
+
 function onDragMove(e) {
   if (!drag) return;
   e.preventDefault();
   drag.x = e.clientX;
   drag.y = e.clientY;
+  moverFantasma();
   recolocarDrag();
 }
 
-// Mira qué fila hay bajo el puntero y coloca la arrastrada encima o
-// debajo de ella según la mitad en la que esté el puntero.
-function recolocarDrag() {
-  const { item, container } = drag;
-  const r  = item.getBoundingClientRect();
-  // Se mira en la columna del asa, no donde esté el puntero en horizontal,
-  // para que no importe si el dedo se desvía hacia los lados.
-  const el = document.elementFromPoint(r.left + Math.min(30, r.width / 2), drag.y);
-  if (!el) return;
-  let over = el.closest("tr.main-row, tr.detail-row, .card-m");
-  if (!over || !container.contains(over) || over === item) return;
-  if (over.classList.contains("detail-row")) over = over.previousElementSibling;
-  if (!over || over === item) return;
+// Posición "real" de una fila en pantalla, sin contar la animación de
+// deslizamiento que pueda tener a medias (así no da tirones).
+function topReal(el) {
+  return el.offsetParent.getBoundingClientRect().top + el.offsetTop;
+}
 
-  let target;
-  if (esVacio(over)) {
-    // Encima de la fila vacía de "Nueva película": va la primera de todas
-    target = itemsDe(container).find(el => !esVacio(el) && el !== item) || null;
-  } else {
-    const or = over.getBoundingClientRect();
-    const debajo = drag.y > or.top + or.height / 2;
-    if (debajo) {
-      target = over.nextElementSibling;
-      while (target && !(target.classList.contains("main-row") || target.classList.contains("card-m"))) {
-        target = target.nextElementSibling;
-      }
-    } else {
-      target = over;
-    }
+// Decide dónde va el hueco: justo antes de la primera fila cuya mitad
+// quede por debajo del centro de la copia flotante.
+function recolocarDrag() {
+  const { item, container, ghost } = drag;
+  const centro = drag.y - drag.agarreY + ghost.offsetHeight / 2;
+  let target = null;
+  for (const el of itemsDe(container)) {
+    if (el === item || esVacio(el)) continue;   // la fila vacía siempre se queda arriba
+    if (topReal(el) + el.offsetHeight / 2 > centro) { target = el; break; }
   }
   moverDraggedAntesDe(target);
 }
 
-// Deja la fila arrastrada justo antes de "target" (o al final si es null)
-// moviendo las filas de alrededor, nunca la arrastrada.
+// Deja el hueco justo antes de "target" (o al final si es null) moviendo
+// las filas de alrededor, nunca el hueco. Las filas que cambian de sitio
+// se deslizan suavemente hasta su nueva posición.
 function moverDraggedAntesDe(target) {
   const { item: D, container: C } = drag;
   const kids = [...C.children];
   const iD = kids.indexOf(D);
   const iT = target ? kids.indexOf(target) : kids.length;
   if (iT === iD || iT === iD + 1 || iT < 0) return;
+
+  // Dónde se ven ahora las demás filas (antes de moverlas)
+  const antes = new Map();
+  kids.forEach(el => { if (el !== D) antes.set(el, el.getBoundingClientRect().top); });
+
   if (iT > iD) {
     for (let k = iD + 1; k < iT; k++) C.insertBefore(kids[k], D);
   } else {
     const ref = D.nextSibling;
     for (let k = iT; k < iD; k++) C.insertBefore(kids[k], ref);
   }
+
+  // Animación: cada fila arranca donde estaba y se desliza a su sitio nuevo
+  antes.forEach((topAntes, el) => {
+    el.style.transition = "none";
+    el.style.transform  = "";
+    const delta = topAntes - el.getBoundingClientRect().top;
+    if (!delta) return;
+    el.style.transform = `translateY(${delta}px)`;
+    el.getBoundingClientRect();               // fuerza al navegador a aplicar el punto de partida
+    el.style.transition = "transform 160ms ease";
+    el.style.transform  = "";
+  });
 }
 
 // Si el puntero se acerca al borde de la pantalla, la página se desplaza
@@ -2149,6 +2225,7 @@ function endDrag() {
   document.removeEventListener("pointerup",     endDrag);
   document.removeEventListener("pointercancel", endDrag);
   document.body.classList.remove("is-dragging");
+  if (drag.ghost) drag.ghost.remove();
 
   const { id, container, ordenInicial } = drag;
   const items = itemsDe(container);

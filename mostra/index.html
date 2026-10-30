@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas Mostra — Cines Babel · v1.2</title>
+  <title>Ingestas Mostra — Cines Babel · v1.3</title>
   <!-- Icono propio de la Mostra: mostra-icon.png, en esta misma carpeta
        (mostra/), junto al HTML. Se usa como favicon, icono de la app en iOS
        y logo de la cabecera. El ?v=1 evita que el navegador se quede con una
@@ -537,7 +537,7 @@
     /* ── ARCHIVOS: botón resumen de la fila ── */
     .arch-toggle {
       display: inline-flex; align-items: center; justify-content: space-between; gap: 8px;
-      width: 100%; max-width: 128px;
+      width: 100%; max-width: 138px;
       background: transparent; border: 1px solid var(--border); border-radius: 8px;
       padding: 4px 9px; cursor: pointer;
       font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.64rem; font-weight: 600;
@@ -558,9 +558,11 @@
       text-transform: uppercase; letter-spacing: 0.1em;
     }
     .archivos-head strong { color: var(--text2); text-transform: none; letter-spacing: 0; font-size: 0.66rem; }
+    /* Un archivo por línea: los nombres de DCP son largos y tienen que leerse enteros */
     .archivos-grid {
-      display: grid; gap: 6px 10px;
-      grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
+      display: grid; gap: 6px;
+      grid-template-columns: 1fr;
+      max-width: 960px;
     }
     .archivo-slot {
       display: flex; align-items: center; gap: 6px;
@@ -576,6 +578,62 @@
       -webkit-user-select: text; user-select: text;
     }
     .slot-input::placeholder { color: var(--text3); font-family: 'Plus Jakarta Sans', sans-serif; font-style: italic; }
+    .archivos-leyenda {
+      margin-left: 8px; font-weight: 600; letter-spacing: 0.04em;
+      text-transform: none; color: var(--text3); font-size: 0.6rem;
+    }
+
+    /* ▶ Archivo a proyectar (solo uno por película) */
+    .slot-play {
+      display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+      flex-shrink: 0; height: 24px; min-width: 24px; padding: 0 6px;
+      border-radius: 6px; border: 1.5px solid var(--border);
+      background: transparent; color: var(--text3); cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.52rem; font-weight: 800;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      transition: all 0.15s;
+    }
+    .slot-play-ico { font-size: 0.56rem; line-height: 1; }
+    .slot-play-txt { display: none; }
+    .slot-play:hover { border-color: var(--mostra); color: var(--mostra); }
+    .archivo-slot.is-proyectar {
+      border: 2px solid var(--mostra);
+      background: rgba(232,85,63,0.07);
+      box-shadow: 0 2px 10px rgba(232,85,63,0.14);
+    }
+    body.dark .archivo-slot.is-proyectar { background: rgba(255,122,99,0.10); }
+    .archivo-slot.is-proyectar .slot-play {
+      background: var(--mostra); border-color: var(--mostra); color: #fff; padding: 0 8px;
+    }
+    .archivo-slot.is-proyectar .slot-play-txt { display: inline; }
+    .archivo-slot.is-proyectar .slot-input { font-weight: 700; }
+    .archivo-slot.is-proyectar .slot-num { color: var(--mostra); }
+    /* Cuando ya hay uno elegido, los demás se atenúan (vuelven al pasar por encima) */
+    .archivo-slot.is-secundario { opacity: 0.5; transition: opacity 0.15s; }
+    .archivo-slot.is-secundario:hover,
+    .archivo-slot.is-secundario:focus-within { opacity: 1; }
+
+    /* ✓ Probado (pueden ser varios) */
+    .slot-ok {
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
+      border: 1.5px solid var(--border); background: transparent;
+      color: var(--text3); cursor: pointer; transition: all 0.15s;
+    }
+    .slot-ok svg { display: block; }
+    .slot-ok:hover { border-color: #22c55e; color: #22c55e; }
+    .archivo-slot.is-probado .slot-ok {
+      background: #22c55e; border-color: #22c55e; color: #fff;
+      box-shadow: 0 2px 6px rgba(34,197,94,0.35);
+    }
+    body.dark .archivo-slot.is-probado .slot-ok { background: #16a34a; border-color: #16a34a; }
+
+    /* Marquitas del resumen en la fila plegada */
+    .arch-label { display: inline-flex; align-items: center; gap: 4px; min-width: 0; overflow: hidden; }
+    .arch-mark-play { color: var(--mostra); font-size: 0.56rem; }
+    .arch-mark-ok   { color: #16a34a; font-weight: 800; font-size: 0.7rem; margin-right: 1px; }
+    body.dark .arch-mark-ok { color: #4ade80; }
+
     .slot-del {
       background: transparent; border: none; color: var(--text3);
       font-size: 0.72rem; cursor: pointer; padding: 4px 7px; border-radius: 6px; line-height: 1;
@@ -1126,6 +1184,18 @@
           <span style="font-size:0.82rem;margin-top:1px;">👁</span>
           <span>Con la fila plegada, el botón indica cuántos archivos hay. Al pasar el ratón por encima se ven todos los nombres. El buscador también encuentra por nombre de archivo.</span>
         </div>
+        <div class="help-row">
+          <span style="font-size:0.72rem;margin-top:2px;color:var(--mostra);font-weight:800;">▶</span>
+          <span><strong style="color:var(--text);">Archivo a proyectar</strong> — Pulsa ▶ junto a un archivo para marcarlo como el que se proyecta. Solo puede haber uno por película: queda resaltado en coral y los demás se atenúan. Vuelve a pulsar para desmarcarlo.</span>
+        </div>
+        <div class="help-row">
+          <span style="font-size:0.76rem;margin-top:1px;color:#16a34a;font-weight:800;">✓</span>
+          <span><strong style="color:var(--text);">Probado</strong> — Pulsa el círculo ✓ de la derecha cuando hayas comprobado que el archivo funciona; se pone verde. Se pueden marcar varios.</span>
+        </div>
+        <div class="help-row">
+          <span style="font-size:0.82rem;margin-top:1px;">👁</span>
+          <span>Con la fila plegada, el botón de Archivos muestra un <strong style="color:var(--mostra);">▶</strong> si ya hay archivo elegido, y un <strong style="color:#16a34a;">✓</strong> si además está probado.</span>
+        </div>
       </div>
 
       <div class="help-section">
@@ -1227,7 +1297,7 @@
 
       <div class="help-credits">
         <strong>Ingestas Mostra — Cines Babel</strong><br>
-        Versión actual: <strong>v1.2</strong> · basada en Lista de Ingestas v1.18<br>
+        Versión actual: <strong>v1.3</strong> · basada en Lista de Ingestas v1.18<br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1273,7 +1343,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>Mostra v1.2 · Diseño por Pablo Goitia</footer>
+<footer>Mostra v1.3 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1297,9 +1367,10 @@
 // · Si falla el guardado, los cambios no se olvidan: se reintenta a los 30 s.
 // · v1.1: las filas se ordenan a mano arrastrándolas (campo "orden").
 // · v1.2: la fila arrastrada va pegada al cursor y las demás se deslizan.
+// · v1.3: cada archivo se puede marcar como "a proyectar" (uno) y "probado".
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = "mostra-v1.2";
+const APP_VERSION = "mostra-v1.3";
 const TABLE       = "mostra_peliculas";
 const LS = {
   rows:   "mostra_rows",
@@ -1443,7 +1514,7 @@ function filaContiene(row, q) {
   if ((row.distribuidora || "").toLowerCase().includes(q)) return true;
   if ((row.otroText      || "").toLowerCase().includes(q)) return true;
   if ((row.fmt2OtroText  || "").toLowerCase().includes(q)) return true;
-  if ((row.archivos || []).some(a => (a || "").toLowerCase().includes(q))) return true;
+  if ((row.archivos || []).some(a => (a.nombre || "").toLowerCase().includes(q))) return true;
   if (FMT_STATES[row.fmt || 0].key.toLowerCase().includes(q)) return true;
   if (FMT2_STATES[row.fmt2 || 0].label.toLowerCase().includes(q)) return true;
   if (ENC_STATES[row.enc || 0].label.toLowerCase().includes(q)) return true;
@@ -1673,6 +1744,10 @@ function migrateRow(row) {
   if (!Array.isArray(row.archivos)) {
     row.archivos = (row.archivo || "").trim() ? [row.archivo] : [];
   }
+  row.archivos = row.archivos.map(normArchivo);
+  // Solo puede haber un archivo a proyectar por película
+  let yaHay = false;
+  row.archivos.forEach(a => { if (a.proyectar) { if (yaHay) a.proyectar = false; yaHay = true; } });
   delete row.archivo;
   if (Array.isArray(row.proj)) {
     row.proj = row.proj.map((p, i) => {
@@ -1923,16 +1998,80 @@ function getSorted() {
 // ARCHIVOS (casillas desplegables de cada película)
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Cada archivo es una ficha:
+//   { nombre: "…", proyectar: true/false, probado: true/false }
+//   · proyectar → el archivo que se va a proyectar. Solo UNO por película.
+//   · probado   → se ha comprobado que funciona. Pueden ser varios.
+// Las versiones anteriores guardaban solo el nombre (un texto); normArchivo
+// convierte esos datos viejos al formato nuevo sin perder nada.
+function normArchivo(a) {
+  if (a && typeof a === "object") {
+    return { nombre: String(a.nombre || ""), proyectar: !!a.proyectar, probado: !!a.probado };
+  }
+  return { nombre: String(a || ""), proyectar: false, probado: false };
+}
+function nuevoArchivo() { return { nombre: "", proyectar: false, probado: false }; }
+
 function archivosDe(row) {
   if (!Array.isArray(row.archivos)) row.archivos = [];
   return row.archivos;
 }
 function archivosLlenos(row) {
-  return (row.archivos || []).filter(a => (a || "").trim());
+  return (row.archivos || []).filter(a => (a.nombre || "").trim());
+}
+function archivoAProyectar(row) {
+  return (row.archivos || []).find(a => a.proyectar) || null;
 }
 function etiquetaArchivos(row) {
   const n = archivosLlenos(row).length;
   return n === 0 ? "Sin archivos" : `${n} archivo${n !== 1 ? "s" : ""}`;
+}
+
+// Marquitas que acompañan al resumen de la fila plegada:
+//   ▶ coral  → hay un archivo marcado para proyectar
+//   ✓ verde  → y ese archivo está probado
+function marcasResumenHTML(row) {
+  const p = archivoAProyectar(row);
+  if (!p) return "";
+  return `<span class="arch-mark-play" title="Hay archivo a proyectar">▶</span>`
+       + (p.probado ? `<span class="arch-mark-ok" title="Archivo a proyectar probado">✓</span>` : "");
+}
+
+// Texto del tooltip: todos los nombres, con el de proyectar y los
+// probados señalados.
+function tipArchivos(row) {
+  return archivosLlenos(row).map(a =>
+    (a.proyectar ? "▶ " : "   ") + a.nombre + (a.probado ? "  ✓" : "")
+  ).join("\n");
+}
+
+// Devuelve la ficha de la casilla idx, creándola si aún no existe
+// (la primera casilla de una película sin archivos es "virtual").
+function fichaArchivo(row, idx) {
+  const list = archivosDe(row);
+  while (list.length <= idx) list.push(nuevoArchivo());
+  return list[idx];
+}
+
+// Marca (o desmarca) un archivo como el que hay que proyectar.
+// Al marcar uno se desmarcan los demás de esa película.
+function toggleProyectar(id, idx) {
+  const row = rows.find(r => r.id === id);
+  if (!row) return;
+  const ficha = fichaArchivo(row, idx);
+  const marcar = !ficha.proyectar;
+  row.archivos.forEach(a => { a.proyectar = false; });
+  ficha.proyectar = marcar;
+  render(); scheduleSave(id);
+}
+
+// Marca (o desmarca) un archivo como probado.
+function toggleProbado(id, idx) {
+  const row = rows.find(r => r.id === id);
+  if (!row) return;
+  const ficha = fichaArchivo(row, idx);
+  ficha.probado = !ficha.probado;
+  render(); scheduleSave(id);
 }
 
 // Abre o cierra el desplegable de una película.
@@ -1955,9 +2094,7 @@ function onRowClick(e, id) {
 function updateArchivo(id, idx, value) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
-  const list = archivosDe(row);
-  while (list.length <= idx) list.push("");
-  list[idx] = value;
+  fichaArchivo(row, idx).nombre = value;
   refrescarResumenArchivos(row);
   scheduleSave(id);
 }
@@ -1969,7 +2106,7 @@ function refrescarResumenArchivos(row) {
     el.textContent = etiquetaArchivos(row);
     const btn = el.closest("button");
     if (btn) {
-      btn.dataset.tip = archivosLlenos(row).join("\n");
+      btn.dataset.tip = tipArchivos(row);
       btn.classList.toggle("has-files", archivosLlenos(row).length > 0);
     }
   });
@@ -1982,11 +2119,11 @@ function addArchivo(id, prefix) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
   const list = archivosDe(row);
-  if (list.length === 0 || !(list[list.length - 1] || "").trim()) {
+  if (list.length === 0 || !(list[list.length - 1].nombre || "").trim()) {
     focusSlot(prefix, id, Math.max(0, list.length - 1));
     return;
   }
-  list.push("");
+  list.push(nuevoArchivo());
   render();
   focusSlot(prefix, id, list.length - 1);
 }
@@ -2007,20 +2144,36 @@ function focusSlot(prefix, id, idx) {
 
 // HTML del panel desplegado (se usa igual en escritorio y en móvil)
 function archivosPanelHTML(row, prefix) {
-  const list  = row.archivos && row.archivos.length ? row.archivos : [""];
-  const slots = list.map((a, i) => `
-    <div class="archivo-slot">
+  const list  = row.archivos && row.archivos.length ? row.archivos : [nuevoArchivo()];
+  const hayProyectar = list.some(a => a.proyectar);
+  const slots = list.map((a, i) => {
+    const clases = ["archivo-slot"];
+    if (a.proyectar) clases.push("is-proyectar");
+    else if (hayProyectar) clases.push("is-secundario");   // hay otro elegido: este se atenúa
+    if (a.probado) clases.push("is-probado");
+    return `
+    <div class="${clases.join(" ")}">
       <span class="slot-num">${i + 1}</span>
+      <button class="slot-play" onclick="toggleProyectar(${row.id},${i})"
+        title="${a.proyectar ? "Es el archivo a proyectar · pulsa para desmarcar" : "Marcar como el archivo a proyectar"}">
+        <span class="slot-play-ico">▶</span><span class="slot-play-txt">Proyectar</span>
+      </button>
       <input class="slot-input" type="text" placeholder="nombre del archivo…"
         id="${prefix}arch-${row.id}-${i}"
-        value="${escHtml(a)}" spellcheck="false" autocomplete="off"
+        value="${escHtml(a.nombre)}" spellcheck="false" autocomplete="off"
         oninput="updateArchivo(${row.id},${i},this.value)"
         onkeydown="if(event.key==='Enter'){event.preventDefault();addArchivo(${row.id},'${prefix}')}"/>
+      <button class="slot-ok" onclick="toggleProbado(${row.id},${i})"
+        title="${a.probado ? "Probado y funciona · pulsa para desmarcar" : "Marcar como probado"}">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
       <button class="slot-del" onclick="removeArchivo(${row.id},${i})" title="Quitar esta casilla">✕</button>
-    </div>`).join("");
+    </div>`;
+  }).join("");
   return `
     <div class="archivos-panel">
-      <div class="archivos-head">Archivos · <strong>${escHtml(row.pelicula || "")}</strong></div>
+      <div class="archivos-head">Archivos · <strong>${escHtml(row.pelicula || "")}</strong>
+        <span class="archivos-leyenda">▶ a proyectar (uno) · ✓ probado</span></div>
       <div class="archivos-grid">${slots}</div>
       <button class="btn-add-archivo" onclick="addArchivo(${row.id},'${prefix}')">+ Añadir archivo</button>
     </div>`;
@@ -2356,11 +2509,11 @@ function render() {
         ${row.isEmpty ? "" : `
           <button class="arch-toggle ${nArch ? 'has-files' : ''} ${isOpen ? 'open' : ''}"
             onclick="toggleExpand(${row.id})"
-            data-tip="${escHtml(archivosLlenos(row).join('\n'))}"
+            data-tip="${escHtml(tipArchivos(row))}"
             onmouseenter="if(!this.classList.contains('open'))mostrarPopover(this,this.dataset.tip)"
             onmouseleave="ocultarPopover()"
             title="${isOpen ? 'Plegar archivos' : 'Ver y editar archivos'}">
-            <span data-arch-label="${row.id}">${etiquetaArchivos(row)}</span>
+            <span class="arch-label">${marcasResumenHTML(row)}<span data-arch-label="${row.id}">${etiquetaArchivos(row)}</span></span>
             <span class="chev">▾</span>
           </button>`}
       </td>
@@ -2501,7 +2654,7 @@ function renderMobile() {
       <div class="card-m-salas">${salasHTML}</div>
       ${row.isEmpty ? "" : `
         <button class="card-m-arch-bar" onclick="if(!touchMoved)toggleExpand(${row.id})">
-          <span>📂 Archivos · <span data-arch-label="${row.id}">${etiquetaArchivos(row)}</span></span>
+          <span class="arch-label">📂 Archivos · ${marcasResumenHTML(row)}<span data-arch-label="${row.id}">${etiquetaArchivos(row)}</span></span>
           <span class="chev">▾</span>
         </button>`}
       ${isOpen ? `<div class="card-m-archivos">${archivosPanelHTML(row, "m")}</div>` : ""}

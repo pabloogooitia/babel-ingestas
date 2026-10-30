@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas Mostra — Cines Babel · v1.6</title>
+  <title>Ingestas Mostra — Cines Babel · v2.0</title>
   <!-- Icono propio de la Mostra: mostra-icon.png, en esta misma carpeta
        (mostra/), junto al HTML. Se usa como favicon, icono de la app en iOS
        y logo de la cabecera. El ?v=1 evita que el navegador se quede con una
@@ -856,6 +856,273 @@
       color: var(--text3); user-select: none; letter-spacing: 0.04em;
     }
 
+    /* ══ v2.0 · ESTADOS (semáforo de pases y KDM) ══ */
+    :root {
+      --ok:   #15803d; --ok-bg:   rgba(34,197,94,0.10);  --ok-line:   #22c55e;
+      --warn: #b45309; --warn-bg: rgba(245,158,11,0.13); --warn-line: #f59e0b;
+      --bad:  #dc2626; --bad-bg:  rgba(239,68,68,0.10);  --bad-line:  #ef4444;
+    }
+    body.dark {
+      --ok:   #4ade80; --ok-bg:   rgba(34,197,94,0.13);
+      --warn: #fbbf24; --warn-bg: rgba(245,158,11,0.14);
+      --bad:  #f87171; --bad-bg:  rgba(239,68,68,0.14);
+    }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot.conf, .dot.ok { background: var(--ok-line); }
+    .dot.warn { background: var(--warn-line); }
+    .dot.bad  { background: var(--bad-line); }
+
+    /* ── Selector Lista / Calendario ── */
+    .vista-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .vista-switch {
+      display: inline-flex; gap: 2px; padding: 3px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    }
+    .vista-switch button {
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.7rem; font-weight: 700;
+      border: none; background: transparent; color: var(--text2);
+      padding: 6px 14px; border-radius: 7px; cursor: pointer; transition: all 0.15s;
+    }
+    .vista-switch button:hover { color: var(--text); }
+    .vista-switch button.on { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(63,127,240,0.3); }
+    .vista-resumen { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .res-total { font-size: 0.66rem; font-weight: 700; color: var(--text2); margin-right: 2px; }
+    .res-pill {
+      font-size: 0.62rem; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+      background: var(--surface); border: 1px solid var(--border); color: var(--text2); white-space: nowrap;
+    }
+    .res-pill.conf, .res-pill.ok { color: var(--ok);   background: var(--ok-bg);   border-color: transparent; }
+    .res-pill.warn               { color: var(--warn); background: var(--warn-bg); border-color: transparent; }
+    .res-pill.bad                { color: var(--bad);  background: var(--bad-bg);  border-color: transparent; }
+
+    #vistaCalendario { display: none; }
+    body.vista-cal #vistaLista { display: none; }
+    body.vista-cal #vistaCalendario { display: block; }
+
+    /* ── Calendario ── */
+    .cal-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .cal-dias { display: flex; gap: 6px; overflow-x: auto; flex: 1; min-width: 0; padding: 2px 0 4px; scrollbar-width: thin; }
+    .cal-dia {
+      flex-shrink: 0; min-width: 70px;
+      display: flex; flex-direction: column; align-items: center; gap: 1px;
+      padding: 6px 12px 5px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--surface);
+      font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text2); cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .cal-dia:hover { border-color: var(--accent); }
+    .cal-dia.on { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); }
+    .cal-dia.pasado { opacity: 0.55; }
+    .cal-dia .dow { font-size: 0.54rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+    .cal-dia .num { font-size: 0.8rem; font-weight: 800; color: var(--text); }
+    .cal-dia .cnt { font-size: 0.56rem; font-weight: 700; display: flex; align-items: center; gap: 4px; color: var(--text2); }
+    .cal-ir {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.56rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .cal-resumen {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      font-size: 0.9rem; font-weight: 800; color: var(--text); margin: 2px 0 12px;
+    }
+    .cal-resumen > span:first-child { font-size: 0.68rem; font-weight: 600; color: var(--text2); margin-right: 4px; }
+    .cal-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; align-items: start; }
+    .cal-col {
+      display: flex; flex-direction: column; gap: 7px; min-width: 0; min-height: 140px;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 8px;
+    }
+    .cal-col-head {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--text2); padding: 2px 4px 3px;
+    }
+    .cal-col-head span { color: var(--text3); letter-spacing: 0; }
+    .cal-pase {
+      min-width: 0; cursor: pointer;
+      background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--border);
+      border-radius: 8px; padding: 8px 10px 8px 9px;
+      transition: box-shadow 0.15s, transform 0.15s;
+    }
+    .cal-pase:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.09); transform: translateY(-1px); }
+    .cal-pase.conf { border-left-color: var(--ok-line); background: var(--ok-bg); }
+    .cal-pase.ok   { border-left-color: var(--ok-line); }
+    .cal-pase.warn { border-left-color: var(--warn-line); }
+    .cal-pase.bad  { border-left-color: var(--bad-line); }
+    .cal-pase-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .cal-hora { font-size: 0.82rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+    .cal-hora.vacia { color: var(--text3); }
+    .cal-etq {
+      font-size: 0.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text2); background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 5px; padding: 1px 6px; max-width: 62%;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cal-titulo { font-size: 0.8rem; font-weight: 700; color: var(--text); line-height: 1.25; margin: 3px 0 4px; overflow-wrap: anywhere; }
+    .cal-archivo {
+      display: flex; align-items: center; gap: 5px; min-width: 0;
+      font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 0.6rem; color: var(--text2);
+    }
+    .cal-archivo .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cal-archivo .pl  { color: var(--accent); font-size: 0.5rem; flex-shrink: 0; }
+    .cal-archivo .okm { color: var(--ok); font-weight: 800; flex-shrink: 0; }
+    .cal-chips { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+    .cal-chip {
+      font-size: 0.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+      padding: 2px 6px; border-radius: 5px; background: var(--surface2); color: var(--text2);
+      max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .cal-chip.kdm.ok   { color: var(--ok);   background: var(--ok-bg); }
+    .cal-chip.kdm.warn { color: var(--warn); background: var(--warn-bg); }
+    .cal-chip.kdm.bad  { color: var(--bad);  background: var(--bad-bg); }
+    .cal-estado { font-size: 0.62rem; font-weight: 600; line-height: 1.35; margin-top: 6px; }
+    .cal-pase.conf .cal-estado, .cal-pase.ok .cal-estado { color: var(--ok); }
+    .cal-pase.warn .cal-estado { color: var(--warn); }
+    .cal-pase.bad  .cal-estado { color: var(--bad); }
+    .cal-add {
+      -webkit-appearance: none; appearance: none; width: 100%;
+      border: 1.5px dashed var(--border); background: transparent; border-radius: 8px;
+      padding: 6px 8px; cursor: pointer; text-align: center; text-align-last: center;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.62rem; font-weight: 700; color: var(--text3);
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .cal-add:hover, .cal-add:focus { border-color: var(--accent); color: var(--accent); outline: none; }
+    .cal-add option { color: var(--text); background: var(--surface); text-align: left; }
+    .cal-sinpase {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 14px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px;
+    }
+    .cal-sinpase-label { font-size: 0.56rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-right: 4px; }
+    .cal-sinpase button {
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.66rem; font-weight: 600;
+      color: var(--text2); background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 4px 10px; cursor: pointer;
+    }
+    .cal-sinpase button:hover { border-color: var(--accent); color: var(--accent); }
+    .cal-leyenda { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; font-size: 0.62rem; font-weight: 500; color: var(--text2); }
+    .cal-leyenda span { display: inline-flex; align-items: center; gap: 5px; }
+    .cal-vacio {
+      background: var(--surface); border: 1.5px dashed var(--border); border-radius: 14px;
+      padding: 44px 20px; text-align: center; color: var(--text2); font-size: 0.8rem; line-height: 1.8;
+    }
+    .cal-vacio strong { color: var(--text); }
+
+    /* Ventana de la película (desde el calendario) */
+    .modal.cal-modal { width: 1060px; max-width: 96vw; max-height: 92vh; overflow-y: auto; padding: 20px 22px 22px; }
+    .cal-modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 14px; }
+    .cal-modal-head h2 { font-size: 1.15rem; margin: 2px 0 6px; }
+    .cal-modal-eyebrow { font-size: 0.58rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+    .cal-modal-salas { display: flex; gap: 12px; flex-wrap: wrap; }
+    .ms-sala { display: inline-flex; align-items: center; gap: 5px; font-size: 0.64rem; font-weight: 600; color: var(--text2); }
+    .proj-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+
+    /* ── Panel de cada película: confirmar, pases y KDM ── */
+    .detalle { display: flex; flex-direction: column; gap: 12px; cursor: default; }
+    .detalle-grid { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 20px; align-items: start; }
+    .detalle-main .archivos-grid { max-width: none; }
+    .detalle-side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+    @media (max-width: 1100px) { .detalle-grid { grid-template-columns: 1fr; } }
+    .side-box {
+      display: flex; flex-direction: column; gap: 8px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+    }
+    .side-title {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.56rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .side-count { color: var(--text2); letter-spacing: 0; }
+    .side-label { font-size: 0.54rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+    .side-note { font-size: 0.7rem; color: var(--text2); line-height: 1.5; }
+    .link-btn {
+      background: none; border: none; padding: 2px 4px; cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.64rem; font-weight: 700; color: var(--accent);
+    }
+    .link-btn:hover { text-decoration: underline; }
+    .mini-input {
+      min-width: 0; border: 1px solid var(--border); border-radius: 7px;
+      background: var(--surface2); color: var(--text); outline: none;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.7rem; padding: 5px 7px;
+      -webkit-user-select: text; user-select: text; color-scheme: light;
+    }
+    body.dark .mini-input { color-scheme: dark; }
+    .mini-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(63,127,240,0.1); }
+    .mini-input::placeholder { color: var(--text3); }
+    .pase-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; padding-bottom: 6px; border-bottom: 1px dashed var(--border2); }
+    .pase-row:last-of-type { border-bottom: none; padding-bottom: 0; }
+    .pase-fecha { flex: 1; min-width: 118px; }
+    .pase-sala  { width: 56px;  flex-shrink: 0; }
+    .pase-hora  { width: 92px;  flex-shrink: 0; }
+    .pase-etq   { flex-basis: calc(100% - 14px); margin-left: 14px; }
+    .pase-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; background: var(--border); }
+    .pase-dot.conf, .pase-dot.ok { background: var(--ok-line); }
+    .pase-dot.warn { background: var(--warn-line); }
+    .pase-dot.bad  { background: var(--bad-line); }
+    .pase-cal {
+      background: transparent; border: none; color: var(--text3); cursor: pointer;
+      font-size: 0.8rem; padding: 3px 4px; border-radius: 6px; flex-shrink: 0;
+    }
+    .pase-cal:hover { color: var(--accent); background: var(--accent-dim); }
+    .kdm-salas { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .kdm-salas .side-label { margin-right: 2px; }
+    .kdm-sala {
+      width: 34px; height: 24px; border-radius: 6px; cursor: pointer;
+      border: 1.5px solid var(--border); background: transparent; color: var(--text3);
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.6rem; font-weight: 800;
+      transition: all 0.15s;
+    }
+    .kdm-sala:hover { border-color: var(--ok-line); color: var(--ok); }
+    .kdm-sala.on { background: var(--ok-line); border-color: var(--ok-line); color: #fff; }
+    .kdm-fechas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .kdm-fechas label { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .kdm-mini {
+      display: inline-block; margin-top: 3px; white-space: nowrap;
+      font-size: 0.54rem; font-weight: 700; letter-spacing: 0; text-transform: none;
+      padding: 1px 6px; border-radius: 5px;
+    }
+    .kdm-mini.ok   { color: var(--ok);   background: var(--ok-bg); }
+    .kdm-mini.warn { color: var(--warn); background: var(--warn-bg); }
+    .kdm-mini.bad  { color: var(--bad);  background: var(--bad-bg); }
+    .conf-bar {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px 8px 14px;
+    }
+    .conf-bar.is-conf { background: var(--ok-bg); border-color: rgba(34,197,94,0.35); }
+    .conf-txt { flex: 1; min-width: 200px; font-size: 0.7rem; color: var(--text2); line-height: 1.5; }
+    .conf-txt strong { color: var(--warn); }
+    .conf-sello {
+      font-size: 0.64rem; font-weight: 800; letter-spacing: 0.03em; color: #fff;
+      background: var(--ok-line); padding: 4px 11px; border-radius: 20px;
+    }
+    .conf-meta { flex: 1; min-width: 0; font-size: 0.66rem; color: var(--text2); }
+    .conf-meta code { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 0.62rem; }
+    .conf-aviso { width: 100%; font-size: 0.66rem; font-weight: 600; color: var(--warn); }
+    .conf-btn {
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.68rem; font-weight: 700;
+      border-radius: 8px; padding: 6px 14px; cursor: pointer; flex-shrink: 0;
+      border: 1.5px solid var(--ok-line); background: var(--ok-line); color: #fff;
+      transition: filter 0.15s, box-shadow 0.15s;
+    }
+    .conf-btn:hover { filter: brightness(1.05); box-shadow: 0 3px 10px rgba(34,197,94,0.35); }
+    .conf-btn.quitar { background: transparent; color: var(--text2); border-color: var(--border); box-shadow: none; }
+    .conf-btn.quitar:hover { color: var(--bad); border-color: var(--bad-line); filter: none; }
+
+    /* Indicadores en la fila de la lista */
+    .title-wrap { display: flex; align-items: center; gap: 6px; }
+    .conf-badge {
+      flex-shrink: 0; white-space: nowrap;
+      font-size: 0.54rem; font-weight: 800; color: var(--ok); background: var(--ok-bg);
+      padding: 2px 8px; border-radius: 20px;
+    }
+    .title-sub { display: flex; align-items: center; gap: 8px; padding-left: 6px; margin-top: 1px; }
+    .prox-pase {
+      display: inline-block; margin: 0; padding: 0;
+      background: none; border: none; cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.6rem; font-weight: 600; color: var(--text3);
+    }
+    .prox-pase:hover { color: var(--accent); }
+    .filter-chip.fc-conf   { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
+    .filter-chip.fc-noconf { background: var(--surface2); color: var(--text2); border-color: var(--border); }
+
+    @media (max-width: 1100px) { .cal-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
     /* ── MOBILE ── */
     @media (max-width: 768px) {
       main { padding: 12px 12px 90px; }
@@ -889,6 +1156,18 @@
       .fab-mobile { display: flex !important; }
       /* En el móvil el teclado agranda la letra si es < 16px; así no hace zoom */
       .slot-input { font-size: 16px; }
+      .mini-input { font-size: 16px; }
+      .vista-bar { margin-bottom: 8px; }
+      .vista-switch { width: 100%; }
+      .vista-switch button { flex: 1; }
+      .cal-grid { grid-template-columns: 1fr; }
+      .cal-col { min-height: 0; }
+      .cal-ir { width: 100%; }
+      .pase-row { flex-wrap: wrap; }
+      .pase-fecha { flex: 1; width: auto; }
+      .pase-etq { flex-basis: 100%; }
+      .kdm-fechas { grid-template-columns: 1fr; }
+      .modal.cal-modal { max-width: 100vw; max-height: 100vh; border-radius: 0; padding: 14px; }
     }
     @media (min-width: 769px) {
       .cards-mobile { display: none; }
@@ -1047,6 +1326,15 @@
 </div>
 
 <main>
+  <div class="vista-bar">
+    <div class="vista-switch">
+      <button id="btnVistaLista" onclick="setVista('lista')">☰ Lista</button>
+      <button id="btnVistaCal" onclick="setVista('cal')">▦ Calendario</button>
+    </div>
+    <div class="vista-resumen" id="vistaResumen"></div>
+  </div>
+
+  <div id="vistaLista">
   <div class="legends">
     <div class="legend-group">
       <span class="legend-label">Soporte</span>
@@ -1116,6 +1404,9 @@
     <div class="filter-chip fc-s4" onclick="toggleFilter('sala','3',this)">S4</div>
     <div class="filter-chip fc-s5" onclick="toggleFilter('sala','4',this)">S5</div>
     <div class="filter-sep"></div>
+    <div class="filter-chip fc-conf"   onclick="toggleFilter('conf','si',this)">✓ Confirmadas</div>
+    <div class="filter-chip fc-noconf" onclick="toggleFilter('conf','no',this)">Sin confirmar</div>
+    <div class="filter-sep"></div>
     <div class="filter-chip fc-distri" id="chipDistri" onclick="toggleDistribuidora()"
          title="Mostrar u ocultar la columna Distribuidora">⊞ Distribuidoras</div>
   </div>
@@ -1147,6 +1438,9 @@
   </div>
 
   <div class="cards-mobile" id="cardsMobile"></div>
+  </div><!-- /vistaLista -->
+
+  <div id="vistaCalendario"></div>
   <button class="fab-mobile" id="fabMobile" onclick="saveNow()" title="Guardar">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
   </button>
@@ -1187,7 +1481,7 @@
         <div class="help-section-title">Archivos de cada película</div>
         <div class="help-row">
           <span style="font-size:0.82rem;margin-top:1px;">📂</span>
-          <span>Pulsa sobre cualquier parte de la fila (la fecha, el número, el hueco libre…) o sobre el botón de la columna <strong style="color:var(--text);">Archivos</strong> para desplegar sus casillas. Vuelve a pulsar para plegarlas.</span>
+          <span>Pulsa sobre cualquier parte de la fila (la fecha, el número, el hueco libre…) o sobre el botón de la columna <strong style="color:var(--text);">Archivos</strong> para desplegarla: archivos, pases, KDM y confirmación. Vuelve a pulsar para plegarla.</span>
         </div>
         <div class="help-row">
           <span style="font-size:0.82rem;margin-top:1px;">✍️</span>
@@ -1208,6 +1502,54 @@
         <div class="help-row">
           <span style="font-size:0.82rem;margin-top:1px;">👁</span>
           <span>Con la fila plegada, el botón de Archivos muestra un <strong style="color:var(--accent);">▶</strong> azul si ya hay archivo elegido, y un <strong style="color:#16a34a;">✓</strong> si además está probado.</span>
+        </div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">Calendario</div>
+        <div class="help-row">
+          <span style="font-size:0.82rem;margin-top:1px;">▦</span>
+          <span>Arriba a la izquierda cambias entre <strong style="color:var(--text);">Lista</strong> y <strong style="color:var(--text);">Calendario</strong>. Al lado se ve el resumen de todo el festival: cuántos pases hay confirmados, en orden, a medias y sin archivo.</span>
+        </div>
+        <div class="help-row">
+          <span style="font-size:0.82rem;margin-top:1px;">📅</span>
+          <span>Cada día con pases tiene su pestaña; el puntito de color es el peor estado de ese día, así ves de un vistazo qué día corre prisa. Con <strong style="color:var(--text);">Ir a día</strong> abres cualquier fecha, por ejemplo para empezar a meter pases.</span>
+        </div>
+        <div class="help-row">
+          <span style="font-size:0.82rem;margin-top:1px;">🎞</span>
+          <span>Cinco columnas, una por sala, con los pases ordenados por hora. Cada pase enseña la película, el archivo elegido, el disco y la KDM. Pulsa un pase para abrir la película; con <strong style="color:var(--text);">+ Añadir pase</strong> al pie de cada sala eliges una película y se crea el pase en ese día y esa sala.</span>
+        </div>
+        <div class="help-row">
+          <div class="help-dot" style="background:var(--ok-line);"></div>
+          <span><strong style="color:var(--text);">Verde con fondo</strong> — Confirmada. <strong style="color:var(--text);">Verde</strong> — Todo en orden, falta el visto bueno.</span>
+        </div>
+        <div class="help-row">
+          <div class="help-dot" style="background:var(--warn-line);"></div>
+          <span><strong style="color:var(--text);">Ámbar</strong> — Falta algo; el pase dice qué: archivo sin probar, no copiado o copiando en esa sala, sin KDM para esa sala, KDM no válida a esa hora, falta la hora…</span>
+        </div>
+        <div class="help-row">
+          <div class="help-dot" style="background:var(--bad-line);"></div>
+          <span><strong style="color:var(--text);">Rojo</strong> — No hay archivo elegido para proyectar.</span>
+        </div>
+        <div class="help-row">
+          <span style="font-size:0.82rem;margin-top:1px;">💡</span>
+          <span>Todo se comprueba para <strong style="color:var(--text);">la sala del pase</strong>: su estado S1–S5 y su KDM. Para saber si la KDM aguanta hasta el final, se cuentan 3 horas desde el inicio del pase.</span>
+        </div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">Pases, KDM y confirmación</div>
+        <div class="help-row">
+          <span style="font-size:0.82rem;margin-top:1px;">🗓</span>
+          <span><strong style="color:var(--text);">Pases</strong> — En el desplegable de cada película: fecha, sala, hora y una etiqueta opcional (Coloquio, Presentación…). En la lista, bajo el título, se ve el próximo pase; púlsalo para ir a ese día del calendario.</span>
+        </div>
+        <div class="help-row">
+          <span style="font-size:0.82rem;margin-top:1px;">🔑</span>
+          <span><strong style="color:var(--text);">KDM</strong> — Para las películas marcadas como KDMs: marca para qué salas ha llegado, desde y hasta cuándo es válida, y una nota. Bajo el botón KDMs de la fila se ve el estado: pendiente, hasta…, caduca… (quedan menos de 48 h) o caducada.</span>
+        </div>
+        <div class="help-row">
+          <span style="font-size:0.82rem;margin-top:1px;color:var(--ok);font-weight:800;">✓</span>
+          <span><strong style="color:var(--text);">Confirmar película</strong> — Cuando todo esté revisado, pulsa el botón verde del desplegable. Antes te dice qué queda pendiente. Se guarda quién, cuándo y con qué archivo; la película lleva el sello <strong style="color:var(--text);">✓ Confirmada</strong>. Si después algo cambia (otro archivo, la KDM caduca…), el aviso sale igualmente. Filtros <strong style="color:var(--text);">Confirmadas</strong> y <strong style="color:var(--text);">Sin confirmar</strong> en la barra.</span>
         </div>
       </div>
 
@@ -1279,7 +1621,7 @@
         </div>
         <div class="help-row" style="margin-top:10px;">
           <span style="font-size:0.82rem;margin-top:1px;">⚙</span>
-          <span><strong style="color:var(--text);">Supabase</strong> — Usa el mismo proyecto que la Lista de Ingestas normal (tabla <em>mostra_peliculas</em>). Si el ordenador ya tiene configurada la lista normal, no hay que tocar nada.</span>
+          <span><strong style="color:var(--text);">Supabase</strong> — Usa el mismo proyecto que la Lista de Ingestas normal (tabla <em>mostra_peliculas</em>). Si el ordenador ya tiene configurada la lista normal, no hay que tocar nada. Cuando una versión nueva necesita columnas nuevas, basta con volver a ejecutar <em>setup-supabase.sql</em>.</span>
         </div>
       </div>
 
@@ -1310,7 +1652,7 @@
 
       <div class="help-credits">
         <strong>Ingestas Mostra — Cines Babel</strong><br>
-        Versión actual: <strong>v1.6</strong> · basada en Lista de Ingestas v1.18<br>
+        Versión actual: <strong>v2.0</strong> · basada en Lista de Ingestas v1.18<br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1353,10 +1695,14 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="calModal" onclick="if(event.target===this)cerrarPelicula()">
+  <div class="modal cal-modal"><div id="calModalBody"></div></div>
+</div>
+
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>Mostra v1.6 · Diseño por Pablo Goitia</footer>
+<footer>Mostra v2.0 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1384,9 +1730,11 @@
 // · v1.4: el archivo a proyectar se señala de forma discreta (icono azul y barrita).
 // · v1.5: en Soporte "Otro" se escribe el nombre del disco en la propia chapita.
 // · v1.6: el archivo a proyectar se coloca siempre el primero de su película.
+// · v2.0: vista de calendario, pases por película, KDM (salas y validez) y
+//         confirmación final de cada película.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = "mostra-v1.6";
+const APP_VERSION = "mostra-v2.0";
 const TABLE       = "mostra_peliculas";
 const LS = {
   rows:   "mostra_rows",
@@ -1411,7 +1759,7 @@ function initTheme() {
 // FILTROS POR BOTÓN
 // ═══════════════════════════════════════════════════════════════════════════
 
-const activeFilters = { soporte: null, enc: null, fmt: null, estado: null, sala: new Set() };
+const activeFilters = { soporte: null, enc: null, fmt: null, estado: null, conf: null, sala: new Set() };
 
 function toggleFilter(group, value, el) {
   if (group === 'sala') {
@@ -1470,6 +1818,8 @@ function rowMatchesFilters(row) {
     const target = stateMap[activeFilters.estado];
     if (!(row.proj || []).some(p => p === target)) return false;
   }
+  if (activeFilters.conf === "si" && !row.confirmada) return false;
+  if (activeFilters.conf === "no" &&  row.confirmada) return false;
   if (activeFilters.sala.size > 0) {
     for (const idx of activeFilters.sala) {
       const estado = (row.proj || [])[parseInt(idx)];
@@ -1641,6 +1991,9 @@ function mapSupabaseRow(r) {
     projErr:      r.projerr       || ["","","","",""],
     date:         r.date          || null,
     orden:        typeof r.orden === "number" ? r.orden : null,
+    pases:        Array.isArray(r.pases) ? r.pases : [],
+    kdm:          r.kdm && typeof r.kdm === "object" ? r.kdm : null,
+    confirmada:   r.confirmada && typeof r.confirmada === "object" ? r.confirmada : null,
     isEmpty:      false,
   });
 }
@@ -1775,6 +2128,19 @@ function migrateRow(row) {
   } else {
     row.proj = [0,0,0,0,0];
   }
+  // v2.0: pases, KDM y confirmación
+  row.pases = (Array.isArray(row.pases) ? row.pases : [])
+    .filter(x => x && typeof x === "object")
+    .map(x => ({
+      id:       String(x.id || nuevoPaseId()),
+      fecha:    String(x.fecha || ""),
+      sala:     Math.min(4, Math.max(0, Number(x.sala) || 0)),
+      hora:     String(x.hora || ""),
+      etiqueta: String(x.etiqueta || ""),
+    }));
+  if (row.kdm !== undefined && row.kdm !== null && typeof row.kdm !== "object") row.kdm = null;
+  if (row.kdm === undefined) row.kdm = null;
+  if (!row.confirmada || typeof row.confirmada !== "object") row.confirmada = null;
   return row;
 }
 
@@ -1816,7 +2182,8 @@ let pendingDeletes = new Set();
 function isEditing() {
   if (drag) return true;
   const el = document.activeElement;
-  return !!(el && el.tagName === "INPUT" && (el.closest("#tbody") || el.closest("#cardsMobile")));
+  return !!(el && (el.tagName === "INPUT" || el.tagName === "SELECT") &&
+    (el.closest("#tbody") || el.closest("#cardsMobile") || el.closest("#calModal") || el.closest("#vistaCalendario")));
 }
 
 function setSyncStatus(state, text) {
@@ -1856,6 +2223,9 @@ function rowToRecord(r) {
     projerr:      r.projErr       || ["","","","",""],
     date:         r.date          || new Date().toISOString(),
     orden:        typeof r.orden === "number" ? r.orden : null,
+    pases:        r.pases         || [],
+    kdm:          r.kdm           || null,
+    confirmada:   r.confirmada    || null,
   };
 }
 
@@ -1905,8 +2275,12 @@ async function syncToSheets() {
     deleteIds.forEach(id => pendingDeletes.add(id));
     setPendingState();
     setSyncStatus("error", "Error al guardar — reintentando");
+    // 404 = no existe la tabla · 400 = la tabla existe pero le faltan columnas
+    // nuevas (pases, kdm, confirmada…): en ambos casos hay que ejecutar el SQL.
     showToast(e.status === 404
       ? `⚠ No existe la tabla ${TABLE} en Supabase. Ejecuta setup-supabase.sql.`
+      : e.status === 400
+      ? "⚠ La tabla de Supabase no está actualizada. Ejecuta setup-supabase.sql (v2.0)."
       : "⚠ No se pudo guardar en Supabase. Se reintentará en 30 s.");
     saveTimer = setTimeout(syncToSheets, 30000);
   } finally {
@@ -1980,6 +2354,7 @@ function addEmptyRow() {
     archivos:[],
     proj:[0,0,0,0,0],
     projErr:["","","","",""],
+    pases:[], kdm:null, confirmada:null,
     date:null, isEmpty:true,
   });
 }
@@ -2112,7 +2487,7 @@ function toggleExpand(id) {
 // Un clic en la fila la despliega, salvo que se haya pulsado un botón
 // o una casilla (esos tienen su propia función).
 function onRowClick(e, id) {
-  if (e.target.closest("input, button, a, label, .fmt-btn, .enc-btn, .fmt2-btn, .drag-handle")) return;
+  if (e.target.closest("input, select, button, a, label, .fmt-btn, .enc-btn, .fmt2-btn, .drag-handle, .prox-pase")) return;
   toggleExpand(id);
 }
 
@@ -2484,17 +2859,21 @@ function render() {
           title="Click para cambiar soporte">${fmt.label}</div>`}
       </td>
       <td>
-        <input class="cell-input" type="text"
-          placeholder="${row.isEmpty ? "Nueva película…" : ""}"
-          value="${escHtml(row.pelicula)}"
-          oninput="typingPelicula(${row.id},this.value)"
-          onblur="commitPelicula(${row.id},this.value)"
-          onkeydown="if(event.key==='Enter')this.blur()"/>
+        <div class="title-wrap">
+          <input class="cell-input" type="text"
+            placeholder="${row.isEmpty ? "Nueva película…" : ""}"
+            value="${escHtml(row.pelicula)}"
+            oninput="typingPelicula(${row.id},this.value)"
+            onblur="commitPelicula(${row.id},this.value)"
+            onkeydown="if(event.key==='Enter')this.blur()"/>
+        </div>
+        ${row.isEmpty || !(row.confirmada || proximoPase(row)) ? "" : `<div class="title-sub">${confBadgeHTML(row)}${proxPaseHTML(row)}</div>`}
       </td>
       <td class="center">
         <div class="enc-btn ${enc.cls}"
           onclick="cycleEnc(${row.id})"
           title="Click para cambiar encriptación">${enc.label}</div>
+        ${kdmMiniHTML(row)}
       </td>
       <td class="center">
         <div class="fmt2-btn ${fmt2.cls}"
@@ -2533,7 +2912,7 @@ function render() {
             data-tip="${escHtml(tipArchivos(row))}"
             onmouseenter="if(!this.classList.contains('open'))mostrarPopover(this,this.dataset.tip)"
             onmouseleave="ocultarPopover()"
-            title="${isOpen ? 'Plegar archivos' : 'Ver y editar archivos'}">
+            title="${isOpen ? 'Plegar' : 'Archivos, pases, KDM y confirmación'}">
             <span class="arch-label">${marcasResumenHTML(row)}<span data-arch-label="${row.id}">${etiquetaArchivos(row)}</span></span>
             <span class="chev">▾</span>
           </button>`}
@@ -2569,7 +2948,7 @@ function render() {
       const dtr = document.createElement("tr");
       dtr.className = "detail-row";
       dtr.dataset.id = row.id;
-      dtr.innerHTML = `<td colspan="16">${archivosPanelHTML(row, "d")}</td>`;
+      dtr.innerHTML = `<td colspan="16">${detallePanelHTML(row, "d")}</td>`;
       tbody.appendChild(dtr);
     }
   });
@@ -2585,6 +2964,8 @@ function render() {
   document.getElementById("counter").textContent =
     n === 0 ? "0 películas" : `${n} película${n !== 1 ? "s" : ""}`;
   renderMobile();
+  renderCalendario();
+  renderCalModal();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2645,6 +3026,7 @@ function renderMobile() {
             oninput="typingPelicula(${row.id},this.value)"
             onblur="commitPelicula(${row.id},this.value)"
             onkeydown="if(event.key==='Enter')this.blur()"/>
+          ${confBadgeHTML(row)}
           ${!row.isEmpty ? `<button class="card-m-del" onclick="removeRow(${row.id})">✕</button>` : ""}
         </div>
       </div>
@@ -2655,6 +3037,7 @@ function renderMobile() {
         <div class="card-m-bsep"></div>
         <span class="card-m-blabel">Enc.</span>
         <button class="card-m-btn" style="background:${encBg};color:${encCol};" onclick="if(!touchMoved)cycleEnc(${row.id})">${enc.label}</button>
+        ${kdmMiniHTML(row).replace('<div', '<span').replace('</div>', '</span>')}
         <div class="card-m-bsep"></div>
         <span class="card-m-blabel">Fmt.</span>
         <button class="card-m-btn" style="background:${fmtBg};color:${fmtCol};" onclick="if(!touchMoved)cycleFmt2(${row.id})">${fmt2.label}</button>
@@ -2675,10 +3058,10 @@ function renderMobile() {
       <div class="card-m-salas">${salasHTML}</div>
       ${row.isEmpty ? "" : `
         <button class="card-m-arch-bar" onclick="if(!touchMoved)toggleExpand(${row.id})">
-          <span class="arch-label">📂 Archivos · ${marcasResumenHTML(row)}<span data-arch-label="${row.id}">${etiquetaArchivos(row)}</span></span>
+          <span class="arch-label">📂 Archivos, pases y KDM · ${marcasResumenHTML(row)}<span data-arch-label="${row.id}">${etiquetaArchivos(row)}</span></span>
           <span class="chev">▾</span>
         </button>`}
-      ${isOpen ? `<div class="card-m-archivos">${archivosPanelHTML(row, "m")}</div>` : ""}
+      ${isOpen ? `<div class="card-m-archivos">${detallePanelHTML(row, "m")}</div>` : ""}
     `;
     if (!row.isEmpty) {
       card.addEventListener("click", e => {
@@ -3046,6 +3429,632 @@ function manualAddRow() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// PASES, KDM Y CONFIRMACIÓN (v2.0)
+//
+// Cada película guarda, además de lo de siempre:
+//   pases:      [{ id, fecha:"2026-11-06", sala:0..4, hora:"19:30", etiqueta:"" }]
+//   kdm:        { salas:[5 × true/false], desde:"2026-11-05T00:00", hasta:"…", nota:"" }
+//               Las fechas van en hora local (Valencia), tal como las escribe
+//               el navegador en los campos de fecha y hora.
+//   confirmada: { fecha:ISO, por:"PC Taquilla 01", archivo:"nombre del elegido" }
+//               o null. Es el visto bueno final: alguien lo ha revisado todo.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const SALAS = [0, 1, 2, 3, 4];
+// Duración que se supone a un pase al comprobar si la KDM sigue valiendo
+// al terminar la proyección (no sabemos la duración real de cada película).
+const MARGEN_PASE_MS = 3 * 3600e3;
+
+const DIAS_CORTOS  = ["dom","lun","mar","mié","jue","vie","sáb"];
+const DIAS_LARGOS  = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+const MESES_CORTOS = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const MESES_LARGOS = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+
+function pad2(n) { return String(n).padStart(2, "0"); }
+function hoyStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+// "2026-11-06" + "19:30" → fecha en hora local. (new Date("2026-11-06") a
+// secas la interpretaría en hora UTC, por eso se monta a mano.)
+function fechaLocal(fecha, hora) {
+  if (!fecha) return null;
+  const [y, m, d] = fecha.split("-").map(Number);
+  const [hh, mm]  = (hora || "00:00").split(":").map(Number);
+  const dt = new Date(y, (m || 1) - 1, d || 1, hh || 0, mm || 0);
+  return isNaN(dt.getTime()) ? null : dt;
+}
+function fechaHoraLocal(s) {             // "2026-11-05T18:00"
+  if (!s) return null;
+  const [f, h] = String(s).split("T");
+  return fechaLocal(f, h);
+}
+function fmtDiaCorto(fecha) {
+  const d = fechaLocal(fecha);
+  return d ? `${DIAS_CORTOS[d.getDay()]} ${d.getDate()} ${MESES_CORTOS[d.getMonth()]}` : "";
+}
+function fmtDiaLargo(fecha) {
+  const d = fechaLocal(fecha);
+  return d ? `${DIAS_LARGOS[d.getDay()]} ${d.getDate()} de ${MESES_LARGOS[d.getMonth()]}` : "";
+}
+function fmtFechaHora(dt) {
+  return dt ? `${pad2(dt.getDate())}/${pad2(dt.getMonth() + 1)} ${pad2(dt.getHours())}:${pad2(dt.getMinutes())}` : "";
+}
+
+// ── PASES ──────────────────────────────────────────────────────────────────
+
+function nuevoPaseId() {
+  return "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+function pasesDe(row) {
+  if (!Array.isArray(row.pases)) row.pases = [];
+  return row.pases;
+}
+function pasesOrdenados(row) {
+  return [...(row.pases || [])].sort((a, b) =>
+    (a.fecha || "9999").localeCompare(b.fecha || "9999") ||
+    (a.hora  || "99:99").localeCompare(b.hora || "99:99"));
+}
+function proximoPase(row) {
+  const hoy = hoyStr();
+  return pasesOrdenados(row).find(p => p.fecha && p.fecha >= hoy) || null;
+}
+
+// Añade un pase. Sin fecha ni sala, copia las del último pase de la
+// película (o el día que se esté viendo en el calendario, o hoy).
+function addPase(id, fecha, sala) {
+  const row = rows.find(r => r.id === id);
+  if (!row || row.isEmpty) return null;
+  const ult = pasesOrdenados(row).slice(-1)[0];
+  const pase = {
+    id:       nuevoPaseId(),
+    fecha:    fecha || (ult && ult.fecha) || calDia || hoyStr(),
+    sala:     typeof sala === "number" ? sala : (ult ? ult.sala : 0),
+    hora:     "",
+    etiqueta: "",
+  };
+  pasesDe(row).push(pase);
+  render(); scheduleSave(id);
+  return pase;
+}
+
+// Los campos de fecha y hora dan el valor por bueno en cuanto se teclea
+// la primera cifra (al cambiar "19:30" por "21:30", tras el "2" ya vale
+// "02:30"). Si se redibujara ahí, se perdería la segunda cifra. Por eso
+// esos cambios se guardan al momento pero la página se redibuja al salir
+// del campo (ver el "focusout" de más abajo).
+let renderPendiente = false;
+document.addEventListener("focusout", e => {
+  if (!renderPendiente) return;
+  const sig = e.relatedTarget;
+  // Si se pasa a otro campo de fecha u hora del mismo panel, se espera
+  if (sig && sig.matches && sig.matches("input.mini-input") && sig.closest(".detalle")) return;
+  renderPendiente = false;
+  setTimeout(render, 0);
+});
+
+// redibujar = false para lo que se escribe letra a letra (la etiqueta):
+// así no se pierde el cursor.
+function updatePase(id, pid, campo, valor, redibujar) {
+  const row  = rows.find(r => r.id === id);
+  const pase = row && (row.pases || []).find(p => p.id === pid);
+  if (!pase) return;
+  pase[campo] = campo === "sala" ? Number(valor) : valor;
+  if (redibujar) {
+    if (campo === "sala") render();       // un desplegable cambia de golpe
+    else renderPendiente = true;          // fecha / hora: al salir del campo
+  }
+  scheduleSave(id);
+}
+
+function removePase(id, pid) {
+  const row = rows.find(r => r.id === id);
+  if (!row) return;
+  row.pases = (row.pases || []).filter(p => p.id !== pid);
+  render(); scheduleSave(id);
+}
+
+// ── KDM ────────────────────────────────────────────────────────────────────
+
+// Lee la KDM de una película sin modificarla (siempre devuelve la forma completa)
+function kdmLeer(row) {
+  const k = row && row.kdm && typeof row.kdm === "object" ? row.kdm : {};
+  return {
+    salas: SALAS.map(i => !!(Array.isArray(k.salas) && k.salas[i])),
+    desde: k.desde || "",
+    hasta: k.hasta || "",
+    nota:  k.nota  || "",
+  };
+}
+function kdmDe(row) { row.kdm = kdmLeer(row); return row.kdm; }
+
+function toggleKdmSala(id, s) {
+  const row = rows.find(r => r.id === id);
+  if (!row) return;
+  const k = kdmDe(row);
+  k.salas[s] = !k.salas[s];
+  render(); scheduleSave(id);
+}
+function todasKdmSalas(id) {
+  const row = rows.find(r => r.id === id);
+  if (!row) return;
+  const k = kdmDe(row);
+  const todas = k.salas.every(Boolean);
+  k.salas = SALAS.map(() => !todas);
+  render(); scheduleSave(id);
+}
+function updateKdm(id, campo, valor, redibujar) {
+  const row = rows.find(r => r.id === id);
+  if (!row) return;
+  kdmDe(row)[campo] = valor;
+  if (redibujar) renderPendiente = true;  // fechas: al salir del campo
+  scheduleSave(id);
+}
+// "Necesita KDM": pone la encriptación de la película en KDMs
+function setEncKdm(id) {
+  const row = rows.find(r => r.id === id);
+  if (!row) return;
+  row.enc = 2;
+  render(); scheduleSave(id);
+}
+
+// Resumen de la KDM para la fila de la lista y el panel.
+// null si la película no necesita KDM.
+function kdmEstado(row) {
+  if ((row.enc || 0) !== 2) return null;
+  const k = kdmLeer(row);
+  if (!k.salas.some(Boolean)) return { nivel: "warn", texto: "KDM pendiente" };
+  const ahora = new Date();
+  const desde = fechaHoraLocal(k.desde);
+  const hasta = fechaHoraLocal(k.hasta);
+  if (hasta && hasta < ahora)                 return { nivel: "bad",  texto: "KDM caducada" };
+  if (hasta && hasta - ahora < 48 * 3600e3)   return { nivel: "warn", texto: "caduca " + fmtFechaHora(hasta) };
+  if (desde && desde > ahora)                 return { nivel: "ok",   texto: "desde " + fmtFechaHora(desde) };
+  if (hasta)                                  return { nivel: "ok",   texto: "hasta " + fmtFechaHora(hasta) };
+  return { nivel: "ok", texto: "KDM recibida" };
+}
+
+// ── CONFIRMACIÓN ───────────────────────────────────────────────────────────
+
+// Guarda quién, cuándo y con qué archivo se confirmó. Si luego se elige
+// otro archivo, el aviso "Confirmada con otro archivo" lo delata.
+function toggleConfirmada(id) {
+  const row = rows.find(r => r.id === id);
+  if (!row) return;
+  if (row.confirmada) {
+    row.confirmada = null;
+  } else {
+    const arch = archivoAProyectar(row);
+    row.confirmada = {
+      fecha:   new Date().toISOString(),
+      por:     SESSION_NAME,
+      archivo: arch ? arch.nombre : "",
+    };
+  }
+  render(); scheduleSave(id);
+}
+
+// ── ESTADO DE UN PASE ──────────────────────────────────────────────────────
+// Devuelve { nivel, motivos }:
+//   "bad"  → no hay archivo elegido para proyectar
+//   "warn" → falta algo (los motivos dicen qué)
+//   "ok"   → todo en orden, pero nadie lo ha confirmado aún
+//   "conf" → todo en orden y confirmada
+// Todo se comprueba para LA SALA DEL PASE: su estado S1–S5 y su KDM.
+
+const NIVEL_PESO = { conf: 0, ok: 1, warn: 2, bad: 3 };
+
+function estadoPase(row, pase) {
+  const arch = archivoAProyectar(row);
+  if (!arch || !(arch.nombre || "").trim()) {
+    return { nivel: "bad", motivos: ["Sin archivo elegido"] };
+  }
+  const motivos = [];
+  const s = pase.sala;
+  if (!arch.probado) motivos.push("Archivo sin probar");
+  const p = (row.proj || [])[s] || 0;
+  if (p !== 2) motivos.push(`${PROJ_LABELS[p]} en S${s + 1}`);
+  if (!pase.hora) motivos.push("Falta la hora");
+
+  const enc = row.enc || 0;
+  if (enc === 0) motivos.push("Encriptación sin indicar");
+  if (enc === 2) {
+    const k = kdmLeer(row);
+    if (!k.salas[s]) {
+      motivos.push(`Sin KDM para S${s + 1}`);
+    } else {
+      const ini   = fechaLocal(pase.fecha, pase.hora || "23:59");   // sin hora: no avisar de más
+      const base  = fechaLocal(pase.fecha, pase.hora || "00:00");
+      const fin   = base ? new Date(base.getTime() + MARGEN_PASE_MS) : null;
+      const desde = fechaHoraLocal(k.desde);
+      const hasta = fechaHoraLocal(k.hasta);
+      if (desde && ini && desde > ini) motivos.push("KDM aún no válida");
+      if (hasta && fin && hasta < fin) motivos.push("KDM caduca antes");
+    }
+  }
+  if (row.confirmada && row.confirmada.archivo && row.confirmada.archivo !== arch.nombre) {
+    motivos.push("Confirmada con otro archivo");
+  }
+  if (motivos.length) return { nivel: "warn", motivos };
+  return { nivel: row.confirmada ? "conf" : "ok", motivos: [] };
+}
+
+// Lo que le falta a una película en conjunto (para la barra de confirmar)
+function pendientesPelicula(row) {
+  const set = new Set();
+  const arch = archivoAProyectar(row);
+  if (!arch || !(arch.nombre || "").trim()) set.add("Sin archivo elegido");
+  else if (!arch.probado) set.add("Archivo sin probar");
+  if ((row.enc || 0) === 0) set.add("Encriptación sin indicar");
+  const kdm = kdmEstado(row);
+  if (kdm && kdm.nivel !== "ok") set.add(/^KDM/.test(kdm.texto) ? kdm.texto : "KDM " + kdm.texto);
+  const ps = row.pases || [];
+  if (!ps.length) set.add("Sin pases");
+  ps.forEach(p => estadoPase(row, p).motivos.forEach(m => set.add(m)));
+  return [...set];
+}
+
+function textoEstado(est) {
+  if (est.nivel === "conf") return "✓ Confirmada";
+  if (est.nivel === "ok")   return "Todo en orden · sin confirmar";
+  return est.motivos.join(" · ");
+}
+
+// ── HTML DEL PANEL DE CADA PELÍCULA ────────────────────────────────────────
+// Se usa igual en la lista (escritorio y móvil) y en la ventana del calendario.
+
+function detallePanelHTML(row, prefix) {
+  return `
+    <div class="detalle">
+      ${confirmBarHTML(row)}
+      <div class="detalle-grid">
+        <div class="detalle-main">${archivosPanelHTML(row, prefix)}</div>
+        <div class="detalle-side">
+          ${pasesBoxHTML(row, prefix)}
+          ${kdmBoxHTML(row)}
+        </div>
+      </div>
+    </div>`;
+}
+
+function confirmBarHTML(row) {
+  const pend = pendientesPelicula(row);
+  if (row.confirmada) {
+    const c = row.confirmada;
+    const avisos = pend.filter(m => m !== "Sin pases");
+    return `
+      <div class="conf-bar is-conf">
+        <span class="conf-sello">✓ Confirmada</span>
+        <span class="conf-meta">${escHtml(c.por || "")} · ${fmtFechaHora(new Date(c.fecha))}${c.archivo ? ` · <code>${escHtml(c.archivo)}</code>` : ""}</span>
+        <button class="conf-btn quitar" onclick="toggleConfirmada(${row.id})">Quitar confirmación</button>
+        ${avisos.length ? `<span class="conf-aviso">⚠ Ojo, desde que se confirmó: ${escHtml(avisos.join(" · "))}</span>` : ""}
+      </div>`;
+  }
+  return `
+    <div class="conf-bar">
+      <span class="conf-txt">${pend.length
+        ? `<strong>Pendiente:</strong> ${escHtml(pend.join(" · "))}`
+        : "Todo en orden. Falta el visto bueno final."}</span>
+      <button class="conf-btn" onclick="toggleConfirmada(${row.id})"
+        title="Marca que la película está revisada y la proyección funcionará">✓ Confirmar película</button>
+    </div>`;
+}
+
+function pasesBoxHTML(row, prefix) {
+  const ps = pasesOrdenados(row);
+  const filas = ps.map(p => {
+    const e = estadoPase(row, p);
+    const tip = e.motivos.length ? e.motivos.join(" · ") : (e.nivel === "conf" ? "Confirmada" : "Todo en orden");
+    return `
+      <div class="pase-row">
+        <span class="pase-dot ${e.nivel}" title="${escHtml(tip)}"></span>
+        <input class="mini-input pase-fecha" type="date" value="${escHtml(p.fecha)}"
+          onchange="updatePase(${row.id},'${p.id}','fecha',this.value,true)"/>
+        <select class="mini-input pase-sala" onchange="updatePase(${row.id},'${p.id}','sala',this.value,true)">
+          ${SALAS.map(s => `<option value="${s}" ${p.sala === s ? "selected" : ""}>S${s + 1}</option>`).join("")}
+        </select>
+        <input class="mini-input pase-hora" type="time" value="${escHtml(p.hora)}" id="${prefix}ph-${p.id}"
+          onchange="updatePase(${row.id},'${p.id}','hora',this.value,true)"/>
+        <button class="pase-cal" onclick="irACalendario('${p.fecha}')" title="Ver ese día en el calendario">▦</button>
+        <button class="slot-del" onclick="removePase(${row.id},'${p.id}')" title="Quitar este pase">✕</button>
+        <input class="mini-input pase-etq" type="text" placeholder="Etiqueta opcional: coloquio, presentación…"
+          value="${escHtml(p.etiqueta)}"
+          oninput="updatePase(${row.id},'${p.id}','etiqueta',this.value,false)"/>
+      </div>`;
+  }).join("");
+  return `
+    <div class="side-box">
+      <div class="side-title">Pases <span class="side-count">${ps.length || ""}</span></div>
+      ${filas || `<p class="side-note">Sin pases todavía.</p>`}
+      <button class="btn-add-archivo" onclick="addPase(${row.id})">+ Añadir pase</button>
+    </div>`;
+}
+
+function kdmBoxHTML(row) {
+  const enc = row.enc || 0;
+  const est = kdmEstado(row);
+  const cabecera = `<div class="side-title">KDM ${est ? `<span class="kdm-mini ${est.nivel}">${escHtml(est.texto)}</span>` : ""}</div>`;
+  if (enc !== 2) {
+    return `
+      <div class="side-box">
+        ${cabecera}
+        <p class="side-note">${enc === 1 ? "Marcada como LIBRE: no necesita KDM." : "Encriptación sin indicar."}
+          <button class="link-btn" onclick="setEncKdm(${row.id})">Necesita KDM</button></p>
+      </div>`;
+  }
+  const k = kdmLeer(row);
+  return `
+    <div class="side-box">
+      ${cabecera}
+      <div class="kdm-salas">
+        <span class="side-label">Recibida para</span>
+        ${SALAS.map(s => `<button class="kdm-sala ${k.salas[s] ? "on" : ""}" onclick="toggleKdmSala(${row.id},${s})"
+          title="${k.salas[s] ? "Hay KDM para" : "Falta KDM para"} la sala ${s + 1}">S${s + 1}</button>`).join("")}
+        <button class="link-btn" onclick="todasKdmSalas(${row.id})">${k.salas.every(Boolean) ? "ninguna" : "todas"}</button>
+      </div>
+      <div class="kdm-fechas">
+        <label><span class="side-label">Válida desde</span>
+          <input class="mini-input" type="datetime-local" value="${escHtml(k.desde)}"
+            onchange="updateKdm(${row.id},'desde',this.value,true)"/></label>
+        <label><span class="side-label">Hasta</span>
+          <input class="mini-input" type="datetime-local" value="${escHtml(k.hasta)}"
+            onchange="updateKdm(${row.id},'hasta',this.value,true)"/></label>
+      </div>
+      <input class="mini-input" type="text" placeholder="Nota (p. ej. pedida a la distribuidora el 28/10)"
+        value="${escHtml(k.nota)}" oninput="updateKdm(${row.id},'nota',this.value,false)"/>
+    </div>`;
+}
+
+// Indicadores pequeños de la fila de la lista
+function kdmMiniHTML(row) {
+  const est = kdmEstado(row);
+  return est ? `<div class="kdm-mini ${est.nivel}">${escHtml(est.texto)}</div>` : "";
+}
+function confBadgeHTML(row) {
+  if (!row.confirmada) return "";
+  const c = row.confirmada;
+  return `<span class="conf-badge" title="Confirmada por ${escHtml(c.por || "")} · ${fmtFechaHora(new Date(c.fecha))}">✓ Confirmada</span>`;
+}
+function proxPaseHTML(row) {
+  const prox = proximoPase(row);
+  if (!prox) return "";
+  const hoy = hoyStr();
+  const mas = (row.pases || []).filter(p => p.fecha && p.fecha >= hoy).length - 1;
+  return `<button class="prox-pase" onclick="irACalendario('${prox.fecha}')" title="Ver ese día en el calendario">▦ ${fmtDiaCorto(prox.fecha)} · S${prox.sala + 1}${prox.hora ? " · " + prox.hora : ""}${mas > 0 ? ` · +${mas}` : ""}</button>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VISTA DE CALENDARIO
+// Un día cada vez (pestañas con los días que tienen pases) y cinco columnas,
+// una por sala, con los pases ordenados por hora. Cada pase se colorea según
+// estadoPase(). Al pulsarlo se abre la película en una ventana.
+// ═══════════════════════════════════════════════════════════════════════════
+
+let vista = "lista";
+let calDia = null;
+let calModalId = null;
+try { vista  = localStorage.getItem("mostra_vista") === "cal" ? "cal" : "lista"; } catch(e) {}
+try { calDia = localStorage.getItem("mostra_cal_dia") || null; } catch(e) {}
+
+function aplicarVista() {
+  document.body.classList.toggle("vista-cal", vista === "cal");
+  const bl = document.getElementById("btnVistaLista");
+  const bc = document.getElementById("btnVistaCal");
+  if (bl) bl.classList.toggle("on", vista === "lista");
+  if (bc) bc.classList.toggle("on", vista === "cal");
+}
+function setVista(v) {
+  vista = v === "cal" ? "cal" : "lista";
+  try { localStorage.setItem("mostra_vista", vista); } catch(e) {}
+  aplicarVista();
+  render();
+  window.scrollTo(0, 0);
+}
+function setCalDia(f) {
+  if (!f) return;
+  calDia = f;
+  try { localStorage.setItem("mostra_cal_dia", f); } catch(e) {}
+  render();
+}
+function irACalendario(f) {
+  calModalId = null;
+  if (f) { calDia = f; try { localStorage.setItem("mostra_cal_dia", f); } catch(e) {} }
+  setVista("cal");
+}
+
+// Días con pases (más el día elegido, aunque esté vacío)
+function diasCalendario() {
+  const set = new Set();
+  rows.forEach(r => { if (!r.isEmpty) (r.pases || []).forEach(p => { if (p.fecha) set.add(p.fecha); }); });
+  if (calDia) set.add(calDia);
+  return [...set].sort();
+}
+function diaActivo(dias) {
+  if (calDia && dias.includes(calDia)) return calDia;
+  const hoy = hoyStr();
+  return dias.find(d => d >= hoy) || dias[dias.length - 1] || null;
+}
+function pasesDelDia(fecha) {
+  const out = [];
+  rows.forEach(r => {
+    if (r.isEmpty) return;
+    (r.pases || []).forEach(p => { if (p.fecha === fecha) out.push({ row: r, pase: p, est: estadoPase(r, p) }); });
+  });
+  return out.sort((a, b) => (a.pase.hora || "99:99").localeCompare(b.pase.hora || "99:99"));
+}
+function contarNiveles(lista) {
+  const c = { conf: 0, ok: 0, warn: 0, bad: 0 };
+  lista.forEach(x => c[x.est.nivel]++);
+  return c;
+}
+function peorNivel(lista) {
+  return lista.reduce((peor, x) => NIVEL_PESO[x.est.nivel] > NIVEL_PESO[peor] ? x.est.nivel : peor, "conf");
+}
+
+function resumenPillsHTML(c) {
+  const p = [];
+  if (c.conf) p.push(`<span class="res-pill conf">✓ ${c.conf} confirmado${c.conf !== 1 ? "s" : ""}</span>`);
+  if (c.ok)   p.push(`<span class="res-pill ok">${c.ok} en orden</span>`);
+  if (c.warn) p.push(`<span class="res-pill warn">${c.warn} a medias</span>`);
+  if (c.bad)  p.push(`<span class="res-pill bad">${c.bad} sin archivo</span>`);
+  return p.join("");
+}
+
+// Resumen de todo el festival, junto al selector Lista / Calendario
+function renderResumenGlobal() {
+  const el = document.getElementById("vistaResumen");
+  if (!el) return;
+  const todos = [];
+  rows.forEach(r => { if (!r.isEmpty) (r.pases || []).forEach(p => todos.push({ est: estadoPase(r, p) })); });
+  const sinPase = rows.filter(r => !r.isEmpty && !(r.pases || []).length).length;
+  if (!todos.length && !sinPase) { el.innerHTML = ""; return; }
+  el.innerHTML = `<span class="res-total">${todos.length} pase${todos.length !== 1 ? "s" : ""}</span>`
+    + resumenPillsHTML(contarNiveles(todos))
+    + (sinPase ? `<span class="res-pill">${sinPase} película${sinPase !== 1 ? "s" : ""} sin pase</span>` : "");
+}
+
+function renderCalendario() {
+  renderResumenGlobal();
+  const cont = document.getElementById("vistaCalendario");
+  if (!cont || vista !== "cal") return;
+
+  const dias = diasCalendario();
+  const dia  = diaActivo(dias);
+  const hoy  = hoyStr();
+  const conTitulo = getSorted().filter(r => !r.isEmpty);
+  const sinPase   = conTitulo.filter(r => !(r.pases || []).length);
+
+  const irA = `<label class="cal-ir">Ir a día
+      <input class="mini-input" type="date" value="${escHtml(dia || hoy)}" onchange="setCalDia(this.value)"/></label>`;
+
+  if (!dia) {
+    cont.innerHTML = `
+      <div class="cal-top">${irA}</div>
+      <div class="cal-vacio">
+        <strong>Todavía no hay pases.</strong><br>
+        Elige un día con <em>Ir a día</em> y añade pases desde cada sala,<br>
+        o desde el desplegable de cada película en la lista (apartado <em>Pases</em>).
+      </div>`;
+    return;
+  }
+
+  const delDia = pasesDelDia(dia);
+
+  const pestañas = dias.map(d => {
+    const lista = pasesDelDia(d);
+    const peor  = lista.length ? peorNivel(lista) : "";
+    return `<button class="cal-dia ${d === dia ? "on" : ""} ${d < hoy ? "pasado" : ""}" onclick="setCalDia('${d}')">
+        <span class="dow">${DIAS_CORTOS[fechaLocal(d).getDay()]}${d === hoy ? " · hoy" : ""}</span>
+        <span class="num">${fechaLocal(d).getDate()} ${MESES_CORTOS[fechaLocal(d).getMonth()]}</span>
+        <span class="cnt">${peor ? `<i class="dot ${peor}"></i>` : ""}${lista.length || "—"}</span>
+      </button>`;
+  }).join("");
+
+  const opciones = conTitulo.map(r => `<option value="${r.id}">${escHtml(r.pelicula)}</option>`).join("");
+
+  const columnas = SALAS.map(s => {
+    const items = delDia.filter(x => x.pase.sala === s);
+    const bloques = items.map(({ row, pase, est }) => {
+      const arch = archivoAProyectar(row);
+      const sop  = FMT_STATES[row.fmt || 0];
+      const sopTxt = row.fmt === 3 ? (row.otroText || "Otro") : (row.fmt ? sop.label : "");
+      const kdm = kdmEstado(row);
+      return `
+        <div class="cal-pase ${est.nivel}" onclick="abrirPelicula(${row.id})"
+          title="${escHtml(est.motivos.join(" · ") || "Pulsa para ver la película")}">
+          <div class="cal-pase-top">
+            <span class="cal-hora ${pase.hora ? "" : "vacia"}">${pase.hora || "--:--"}</span>
+            ${pase.etiqueta ? `<span class="cal-etq">${escHtml(pase.etiqueta)}</span>` : ""}
+          </div>
+          <div class="cal-titulo">${escHtml(row.pelicula)}</div>
+          ${arch && arch.nombre ? `<div class="cal-archivo"><span class="pl">▶</span><span class="nm">${escHtml(arch.nombre)}</span>${arch.probado ? `<span class="okm">✓</span>` : ""}</div>` : ""}
+          <div class="cal-chips">
+            ${sopTxt ? `<span class="cal-chip">${escHtml(sopTxt)}</span>` : ""}
+            ${(row.enc || 0) === 1 ? `<span class="cal-chip">Libre</span>` : ""}
+            ${kdm ? `<span class="cal-chip kdm ${kdm.nivel}">${escHtml(kdm.texto)}</span>` : ""}
+            ${row.fmt2 ? `<span class="cal-chip">${escHtml(row.fmt2 === 3 ? (row.fmt2OtroText || "Otro") : FMT2_STATES[row.fmt2].label)}</span>` : ""}
+          </div>
+          <div class="cal-estado">${escHtml(textoEstado(est))}</div>
+        </div>`;
+    }).join("");
+    return `
+      <div class="cal-col">
+        <div class="cal-col-head">Sala ${s + 1}<span>${items.length || ""}</span></div>
+        ${bloques}
+        <select class="cal-add" onchange="addPaseCal('${dia}',${s},this.value);this.value=''">
+          <option value="">+ Añadir pase</option>${opciones}
+        </select>
+      </div>`;
+  }).join("");
+
+  cont.innerHTML = `
+    <div class="cal-top">
+      <div class="cal-dias">${pestañas}</div>
+      ${irA}
+    </div>
+    <div class="cal-resumen">${fmtDiaLargo(dia)}
+      <span>${delDia.length} pase${delDia.length !== 1 ? "s" : ""}</span>${resumenPillsHTML(contarNiveles(delDia))}</div>
+    <div class="cal-grid">${columnas}</div>
+    ${sinPase.length ? `
+      <div class="cal-sinpase">
+        <span class="cal-sinpase-label">Sin pase</span>
+        ${sinPase.map(r => `<button onclick="abrirPelicula(${r.id})">${escHtml(r.pelicula)}</button>`).join("")}
+      </div>` : ""}
+    <div class="cal-leyenda">
+      <span><i class="dot conf"></i>Confirmada</span>
+      <span><i class="dot ok"></i>Todo en orden, sin confirmar</span>
+      <span><i class="dot warn"></i>Falta algo</span>
+      <span><i class="dot bad"></i>Sin archivo elegido</span>
+    </div>`;
+}
+
+// "+ Añadir pase" de una sala: crea el pase y abre la película con el
+// cursor en la hora.
+function addPaseCal(fecha, sala, idStr) {
+  const id = Number(idStr);
+  if (!id) return;
+  const pase = addPase(id, fecha, sala);
+  abrirPelicula(id);
+  if (pase) {
+    const el = document.getElementById(`cph-${pase.id}`);
+    if (el) el.focus();
+  }
+}
+
+// ── Ventana de la película (desde el calendario) ──
+function abrirPelicula(id) {
+  calModalId = id;
+  ocultarPopover();
+  renderCalModal();
+}
+function cerrarPelicula() {
+  calModalId = null;
+  renderCalModal();
+  renderCalendario();
+}
+function renderCalModal() {
+  const ov   = document.getElementById("calModal");
+  const body = document.getElementById("calModalBody");
+  if (!ov || !body) return;
+  const row = calModalId !== null ? rows.find(r => r.id === calModalId && !r.isEmpty) : null;
+  if (!row) { calModalId = null; ov.classList.remove("open"); body.innerHTML = ""; return; }
+  const sop = row.fmt === 3 ? (row.otroText || "Otro") : FMT_STATES[row.fmt || 0].label;
+  body.innerHTML = `
+    <div class="cal-modal-head">
+      <div>
+        <div class="cal-modal-eyebrow">Soporte: ${escHtml(sop)} · Encriptación: ${ENC_STATES[row.enc || 0].label} · Formato: ${escHtml(row.fmt2 === 3 ? (row.fmt2OtroText || "Otro") : FMT2_STATES[row.fmt2 || 0].label)}</div>
+        <h2>${escHtml(row.pelicula)}</h2>
+        <div class="cal-modal-salas">
+          ${row.proj.map((p, i) => `<span class="ms-sala"><i class="proj-dot ${PROJ_CLASSES[p]}"></i>S${i + 1} ${PROJ_LABELS[p]}</span>`).join("")}
+        </div>
+      </div>
+      <button class="btn-secondary" onclick="cerrarPelicula()" title="Cerrar (Esc)">✕</button>
+    </div>
+    ${detallePanelHTML(row, "c")}`;
+  ov.classList.add("open");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // FUNCIONES AUXILIARES
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -3134,6 +4143,7 @@ function ocultarPopover() {
 // ATAJOS DE TECLADO
 // ═══════════════════════════════════════════════════════════════════════════
 document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && calModalId !== null) { cerrarPelicula(); return; }
   if ((e.ctrlKey || e.metaKey) && e.key === "s") {
     e.preventDefault();
     saveNow();
@@ -3146,6 +4156,7 @@ document.addEventListener("keydown", (e) => {
 
 initTheme();
 initDistribuidora();
+aplicarVista();
 initSupabase();
 if (supabaseUrl && supabaseKey) { setSyncStatus("syncing","Conectando…"); loadFromSheets(); }
 else                            { setSyncStatus("local","Sin conectar");  loadLocal(); }

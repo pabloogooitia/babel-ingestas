@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas Mostra — Cines Babel · v1.0</title>
-  <!-- Los iconos se toman de la raíz del repositorio (../icon.png), el mismo
-       archivo que usa la Lista de Ingestas normal. Si algún día quieres un
-       icono propio para la Mostra, pon un icon.png dentro de esta carpeta
-       y quita el "../" de estas tres rutas y de la del logo de la cabecera. -->
-  <link rel="icon" href="../icon.png?v=2"/>
-  <link rel="apple-touch-icon" href="../icon.png?v=2"/>
+  <title>Ingestas Mostra — Cines Babel · v1.1</title>
+  <!-- Icono propio de la Mostra: mostra-icon.png, en esta misma carpeta
+       (mostra/), junto al HTML. Se usa como favicon, icono de la app en iOS
+       y logo de la cabecera. El ?v=1 evita que el navegador se quede con una
+       copia vieja en caché: si cambias la imagen, sube ese número aquí y en
+       el <img> de la cabecera. -->
+  <link rel="icon" href="mostra-icon.png?v=1"/>
+  <link rel="apple-touch-icon" href="mostra-icon.png?v=1"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
   <meta name="apple-mobile-web-app-title" content="Ingestas Mostra"/>
@@ -366,6 +367,35 @@
     tbody tr.main-row:not(.empty-row) { cursor: pointer; }
     tbody tr.main-row.expanded { background: var(--accent-dim); border-bottom-color: transparent; }
     tbody tr.main-row.expanded td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+
+    /* ── ARRASTRAR PARA ORDENAR ── */
+    tbody td.drag-cell { width: 26px; padding: 7px 0 7px 8px; }
+    .drag-handle {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 28px; border-radius: 6px;
+      color: var(--text3); cursor: grab;
+      touch-action: none;  /* en móvil, el dedo arrastra la fila en vez de hacer scroll */
+      transition: color 0.15s, background 0.15s;
+    }
+    .drag-handle:hover { color: var(--text2); background: var(--surface2); }
+    .drag-handle svg { display: block; pointer-events: none; }
+    body.is-dragging, body.is-dragging * { cursor: grabbing !important; user-select: none !important; }
+    body.is-dragging .popover { display: none; }
+    tbody tr.main-row.dragging td {
+      background: var(--accent-soft) !important;
+      border-top: 2px solid var(--accent);
+      border-bottom: 2px solid var(--accent);
+    }
+    tbody tr.main-row.dragging td:first-child { border-left: 2px solid var(--accent); }
+    tbody tr.main-row.dragging td:last-child  { border-right: 2px solid var(--accent); }
+    tbody tr.main-row.dragging .drag-handle,
+    .card-m.dragging .drag-handle { color: var(--accent); }
+    .card-m.dragging {
+      border-color: var(--accent);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.16);
+      transform: scale(1.015);
+      position: relative; z-index: 5;
+    }
 
     /* ── DATE ── */
     .date-cell {
@@ -787,6 +817,11 @@
       display: flex; align-items: stretch;
       border-bottom: 1px solid var(--border);
     }
+    .card-m-drag {
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 2px 0 4px; background: var(--surface2); flex-shrink: 0;
+    }
+    .card-m-drag .drag-handle { width: 26px; height: 36px; }
     .card-m-date {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       padding: 8px 9px; background: var(--surface2);
@@ -896,7 +931,7 @@
 <div class="header">
   <div class="header-left">
     <div class="header-icon">
-      <img src="../icon.png?v=2" alt="Cines Babel"
+      <img src="mostra-icon.png?v=1" alt="Mostra de València"
            onerror="this.parentNode.className='header-icon sin-imagen';this.parentNode.textContent='🎬';"/>
     </div>
     <div class="header-titles">
@@ -999,6 +1034,7 @@
     <table>
       <thead>
         <tr>
+          <th style="width:26px;padding:11px 0;"></th>
           <th style="width:38px" class="center"></th>
           <th style="width:18px"></th>
           <th class="center" style="width:66px">Soporte</th>
@@ -1039,6 +1075,22 @@
         <div class="help-section-title">¿Para qué sirve esta lista?</div>
         <p>Es la Lista de Ingestas de siempre, pero <strong style="color:var(--text);">solo para las películas de la Mostra de València</strong>. Funciona igual que la normal, con sus propios datos: lo que se apunta aquí no aparece en la lista de la programación habitual, y al revés.</p>
         <p>Los datos se sincronizan con Supabase, así que todos los ordenadores del cine ven la misma información en tiempo real.</p>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">Ordenar por prioridad</div>
+        <div class="help-row">
+          <span style="font-size:0.82rem;margin-top:1px;">⠿</span>
+          <span>Agarra una película por los <strong style="color:var(--text);">puntitos</strong> de su izquierda y arrástrala arriba o abajo. Suéltala donde quieras: arriba del todo va lo primero que se proyecta. Si llegas al borde de la pantalla, la lista se desplaza sola.</span>
+        </div>
+        <div class="help-row">
+          <span style="font-size:0.82rem;margin-top:1px;">🔢</span>
+          <span>El número de cada fila indica su posición. El orden se guarda en Supabase, así que todos los ordenadores ven el mismo.</span>
+        </div>
+        <div class="help-row">
+          <span style="font-size:0.82rem;margin-top:1px;">➕</span>
+          <span>Las películas nuevas entran arriba del todo; luego arrástralas a su sitio.</span>
+        </div>
       </div>
 
       <div class="help-section">
@@ -1156,7 +1208,7 @@
 
       <div class="help-credits">
         <strong>Ingestas Mostra — Cines Babel</strong><br>
-        Versión actual: <strong>v1.0</strong> · basada en Lista de Ingestas v1.18<br>
+        Versión actual: <strong>v1.1</strong> · basada en Lista de Ingestas v1.18<br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1202,7 +1254,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>Mostra v1.0 · Diseño por Pablo Goitia</footer>
+<footer>Mostra v1.1 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1224,9 +1276,10 @@
 //   (antes se borraba todo lo que este ordenador no tuviera cargado, y
 //   podía llevarse por delante filas recién creadas en otro ordenador).
 // · Si falla el guardado, los cambios no se olvidan: se reintenta a los 30 s.
+// · v1.1: las filas se ordenan a mano arrastrándolas (campo "orden").
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = "mostra-v1.0";
+const APP_VERSION = "mostra-v1.1";
 const TABLE       = "mostra_peliculas";
 const LS = {
   rows:   "mostra_rows",
@@ -1480,6 +1533,7 @@ function mapSupabaseRow(r) {
     proj:         r.proj          || [0,0,0,0,0],
     projErr:      r.projerr       || ["","","","",""],
     date:         r.date          || null,
+    orden:        typeof r.orden === "number" ? r.orden : null,
     isEmpty:      false,
   });
 }
@@ -1644,9 +1698,10 @@ let saveAgain   = false;
 let pendingRowIds  = new Set();
 let pendingDeletes = new Set();
 
-// ¿Hay alguien escribiendo ahora mismo en una casilla de la lista?
-// Si es así, no se redibuja nada para no quitarle el cursor.
+// ¿Hay alguien escribiendo en una casilla o arrastrando una fila?
+// Si es así, no se redibuja nada para no quitarle el cursor ni soltarle la fila.
 function isEditing() {
+  if (drag) return true;
   const el = document.activeElement;
   return !!(el && el.tagName === "INPUT" && (el.closest("#tbody") || el.closest("#cardsMobile")));
 }
@@ -1687,6 +1742,7 @@ function rowToRecord(r) {
     proj:         r.proj          || [0,0,0,0,0],
     projerr:      r.projErr       || ["","","","",""],
     date:         r.date          || new Date().toISOString(),
+    orden:        typeof r.orden === "number" ? r.orden : null,
   };
 }
 
@@ -1815,10 +1871,31 @@ function addEmptyRow() {
   });
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// ORDEN MANUAL
+// Cada película tiene un número "orden": cuanto más pequeño, más arriba.
+// Al arrastrar una fila solo cambia el SUYO (queda a medio camino entre
+// sus nuevas vecinas: entre 3 y 4 → 3.5), así se guarda una sola fila y
+// no se pisan los cambios que otro ordenador esté haciendo a la vez.
+// Las filas que aún no tienen orden se colocan por fecha, la más nueva
+// arriba (igual que antes), y todos los ordenadores calculan lo mismo.
+// ═══════════════════════════════════════════════════════════════════════════
+
+function sortKey(row) {
+  if (typeof row.orden === "number") return row.orden;
+  return -(Date.parse(row.date) || 0) / 1000;
+}
+
+// Orden para una película que se acaba de crear: arriba del todo.
+function ordenParaNueva() {
+  const keys = rows.filter(r => !r.isEmpty).map(sortKey);
+  return keys.length ? Math.floor(Math.min(...keys)) - 1 : 0;
+}
+
 function getSorted() {
   const empty  = rows.filter(r => r.isEmpty);
   const filled = rows.filter(r => !r.isEmpty)
-    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+    .sort((a, b) => (sortKey(a) - sortKey(b)) || (b.id - a.id));
   return [...empty, ...filled];
 }
 
@@ -1849,7 +1926,7 @@ function toggleExpand(id) {
 // Un clic en la fila la despliega, salvo que se haya pulsado un botón
 // o una casilla (esos tienen su propia función).
 function onRowClick(e, id) {
-  if (e.target.closest("input, button, a, label, .fmt-btn, .enc-btn, .fmt2-btn")) return;
+  if (e.target.closest("input, button, a, label, .fmt-btn, .enc-btn, .fmt2-btn, .drag-handle")) return;
   toggleExpand(id);
 }
 
@@ -1930,6 +2007,188 @@ function archivosPanelHTML(row, prefix) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// ARRASTRAR FILAS PARA ORDENARLAS
+// Se hace con "pointer events", que funcionan igual con ratón y con dedo
+// (el arrastrar y soltar nativo del navegador no va bien en móvil).
+//
+// Mientras se arrastra, la fila agarrada NO se mueve en la página: se mueven
+// las demás a su alrededor. Si se moviera la propia fila, el navegador
+// podría "soltarla" a mitad de gesto, sobre todo en pantallas táctiles.
+// Al soltar se lee el nuevo orden y se guarda solo la fila movida.
+// ═══════════════════════════════════════════════════════════════════════════
+
+let drag = null;
+
+function dragHandleHTML(id) {
+  return `<span class="drag-handle" title="Arrastra para ordenar"
+    onpointerdown="startDrag(event,${id})">
+    <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" aria-hidden="true">
+      <circle cx="2.5" cy="2.5" r="1.5"/><circle cx="7.5" cy="2.5" r="1.5"/>
+      <circle cx="2.5" cy="8"   r="1.5"/><circle cx="7.5" cy="8"   r="1.5"/>
+      <circle cx="2.5" cy="13.5" r="1.5"/><circle cx="7.5" cy="13.5" r="1.5"/>
+    </svg></span>`;
+}
+
+// Elementos "fila" de un contenedor: <tr> principales en la tabla,
+// tarjetas en el móvil. Los paneles desplegados no cuentan.
+function itemsDe(container) {
+  return [...container.children].filter(el =>
+    el.classList.contains("main-row") || el.classList.contains("card-m"));
+}
+function esVacio(el) {
+  return el.classList.contains("empty-row") || el.classList.contains("empty-card");
+}
+
+function startDrag(e, id) {
+  if (drag) return;
+  if (e.pointerType === "mouse" && e.button !== 0) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const item = e.currentTarget.closest("tr.main-row, .card-m");
+  if (!item) return;
+  const container = item.parentNode;
+
+  // Si la fila estaba desplegada, su panel se aparta mientras se arrastra
+  // (vuelve a aparecer al soltar).
+  const sig = item.nextElementSibling;
+  if (sig && sig.classList.contains("detail-row")) sig.remove();
+  const panelMovil = item.querySelector(".card-m-archivos");
+  if (panelMovil) panelMovil.style.display = "none";
+
+  drag = {
+    id, item, container,
+    x: e.clientX, y: e.clientY,
+    ordenInicial: itemsDe(container).map(el => el.dataset.id).join(","),
+    raf: null,
+  };
+  ocultarPopover();
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  item.classList.add("dragging");
+  document.body.classList.add("is-dragging");
+  vibrar(12);
+
+  document.addEventListener("pointermove",   onDragMove);
+  document.addEventListener("pointerup",     endDrag);
+  document.addEventListener("pointercancel", endDrag);
+  drag.raf = requestAnimationFrame(autoScrollDrag);
+}
+
+function onDragMove(e) {
+  if (!drag) return;
+  e.preventDefault();
+  drag.x = e.clientX;
+  drag.y = e.clientY;
+  recolocarDrag();
+}
+
+// Mira qué fila hay bajo el puntero y coloca la arrastrada encima o
+// debajo de ella según la mitad en la que esté el puntero.
+function recolocarDrag() {
+  const { item, container } = drag;
+  const r  = item.getBoundingClientRect();
+  // Se mira en la columna del asa, no donde esté el puntero en horizontal,
+  // para que no importe si el dedo se desvía hacia los lados.
+  const el = document.elementFromPoint(r.left + Math.min(30, r.width / 2), drag.y);
+  if (!el) return;
+  let over = el.closest("tr.main-row, tr.detail-row, .card-m");
+  if (!over || !container.contains(over) || over === item) return;
+  if (over.classList.contains("detail-row")) over = over.previousElementSibling;
+  if (!over || over === item) return;
+
+  let target;
+  if (esVacio(over)) {
+    // Encima de la fila vacía de "Nueva película": va la primera de todas
+    target = itemsDe(container).find(el => !esVacio(el) && el !== item) || null;
+  } else {
+    const or = over.getBoundingClientRect();
+    const debajo = drag.y > or.top + or.height / 2;
+    if (debajo) {
+      target = over.nextElementSibling;
+      while (target && !(target.classList.contains("main-row") || target.classList.contains("card-m"))) {
+        target = target.nextElementSibling;
+      }
+    } else {
+      target = over;
+    }
+  }
+  moverDraggedAntesDe(target);
+}
+
+// Deja la fila arrastrada justo antes de "target" (o al final si es null)
+// moviendo las filas de alrededor, nunca la arrastrada.
+function moverDraggedAntesDe(target) {
+  const { item: D, container: C } = drag;
+  const kids = [...C.children];
+  const iD = kids.indexOf(D);
+  const iT = target ? kids.indexOf(target) : kids.length;
+  if (iT === iD || iT === iD + 1 || iT < 0) return;
+  if (iT > iD) {
+    for (let k = iD + 1; k < iT; k++) C.insertBefore(kids[k], D);
+  } else {
+    const ref = D.nextSibling;
+    for (let k = iT; k < iD; k++) C.insertBefore(kids[k], ref);
+  }
+}
+
+// Si el puntero se acerca al borde de la pantalla, la página se desplaza
+// sola, para poder llevar una fila de arriba abajo en listas largas.
+function autoScrollDrag() {
+  if (!drag) return;
+  const borde = 70;
+  let dy = 0;
+  if (drag.y < borde) dy = -Math.ceil((borde - drag.y) / 4);
+  else if (drag.y > window.innerHeight - borde) dy = Math.ceil((drag.y - (window.innerHeight - borde)) / 4);
+  if (dy) { window.scrollBy(0, dy); recolocarDrag(); }
+  drag.raf = requestAnimationFrame(autoScrollDrag);
+}
+
+function endDrag() {
+  if (!drag) return;
+  cancelAnimationFrame(drag.raf);
+  document.removeEventListener("pointermove",   onDragMove);
+  document.removeEventListener("pointerup",     endDrag);
+  document.removeEventListener("pointercancel", endDrag);
+  document.body.classList.remove("is-dragging");
+
+  const { id, container, ordenInicial } = drag;
+  const items = itemsDe(container);
+  const ordenFinal = items.map(el => el.dataset.id).join(",");
+  const ids = items.filter(el => !esVacio(el)).map(el => Number(el.dataset.id));
+  drag = null;
+
+  if (ordenFinal !== ordenInicial) aplicarNuevoOrden(id, ids);
+  render();
+}
+
+// Calcula el nuevo "orden" de la fila movida a partir de sus vecinas.
+function aplicarNuevoOrden(id, ids) {
+  const row = rows.find(r => r.id === id);
+  const pos = ids.indexOf(id);
+  if (!row || pos < 0) return;
+  const porId = i => rows.find(r => r.id === i);
+  const prev = pos > 0 ? porId(ids[pos - 1]) : null;
+  const next = pos < ids.length - 1 ? porId(ids[pos + 1]) : null;
+  let kp = prev ? sortKey(prev) : null;
+  let kn = next ? sortKey(next) : null;
+
+  // Si dos vecinas están ya pegadísimas (tras muchísimos arrastres en el
+  // mismo hueco), se renumera toda la lista 0, 1, 2… y se recalcula.
+  if (kp !== null && kn !== null && !(kn - kp > 1e-6)) {
+    getSorted()
+      .filter(r => !r.isEmpty && r.id !== id)
+      .forEach((r, i) => { r.orden = i; pendingRowIds.add(r.id); });
+    kp = sortKey(prev); kn = sortKey(next);
+  }
+
+  if (kp !== null && kn !== null) row.orden = (kp + kn) / 2;
+  else if (kp !== null)           row.orden = kp + 1;
+  else if (kn !== null)           row.orden = kn - 1;
+  else return;
+
+  scheduleSave(id);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // RENDER (tabla de escritorio)
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -1957,6 +2216,7 @@ function render() {
     const nArch   = archivosLlenos(row).length;
 
     tr.innerHTML = `
+      <td class="drag-cell">${row.isEmpty ? "" : dragHandleHTML(row.id)}</td>
       <td class="date-cell center">
         ${dateDay  ? `<span class="date-day">${dateDay}</span>`   : ""}
         ${dateTime ? `<span class="date-time">${dateTime}</span>` : ""}
@@ -2058,7 +2318,7 @@ function render() {
       const dtr = document.createElement("tr");
       dtr.className = "detail-row";
       dtr.dataset.id = row.id;
-      dtr.innerHTML = `<td colspan="15">${archivosPanelHTML(row, "d")}</td>`;
+      dtr.innerHTML = `<td colspan="16">${archivosPanelHTML(row, "d")}</td>`;
       tbody.appendChild(dtr);
     }
   });
@@ -2118,8 +2378,10 @@ function renderMobile() {
 
     const card = document.createElement("div");
     card.className = "card-m" + (row.isEmpty ? " empty-card" : "") + (isOpen ? " expanded" : "");
+    card.dataset.id = row.id;
     card.innerHTML = `
       <div class="card-m-top">
+        ${row.isEmpty ? "" : `<div class="card-m-drag">${dragHandleHTML(row.id)}</div>`}
         <div class="card-m-date">
           <span>${parts[0]}</span>
           <span>${parts[1]}</span>
@@ -2389,6 +2651,7 @@ function commitPelicula(id, value) {
   row.pelicula = value;
   const wasEmpty = row.isEmpty;
   if (wasEmpty && value.trim()) {
+    row.orden   = ordenParaNueva();
     row.isEmpty = false;
     row.date    = new Date().toISOString();
     if (!rows.some(r => r.isEmpty)) addEmptyRow();
@@ -2410,6 +2673,7 @@ function commitPelicula(id, value) {
 
 function activarSiVacia(row) {
   if (row.isEmpty) {
+    row.orden = ordenParaNueva();
     row.isEmpty = false; row.date = new Date().toISOString();
     if (!rows.some(r => r.isEmpty)) addEmptyRow();
   }

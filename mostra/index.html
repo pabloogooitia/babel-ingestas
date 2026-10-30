@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas Mostra — Cines Babel · v1.5</title>
+  <title>Ingestas Mostra — Cines Babel · v1.6</title>
   <!-- Icono propio de la Mostra: mostra-icon.png, en esta misma carpeta
        (mostra/), junto al HTML. Se usa como favicon, icono de la app en iOS
        y logo de la cabecera. El ?v=1 evita que el navegador se quede con una
@@ -1199,7 +1199,7 @@
         </div>
         <div class="help-row">
           <span style="font-size:0.72rem;margin-top:2px;color:var(--accent);font-weight:800;">▶</span>
-          <span><strong style="color:var(--text);">Archivo a proyectar</strong> — Pulsa el ▶ que hay a la izquierda de un archivo para marcarlo como el que se proyecta. Solo puede haber uno por película: su ▶ se pone azul, aparece una barrita azul a su izquierda y el nombre pasa a negrita. Si marcas otro, el anterior se desmarca solo; pulsar otra vez el mismo lo desmarca.</span>
+          <span><strong style="color:var(--text);">Archivo a proyectar</strong> — Pulsa el ▶ que hay a la izquierda de un archivo para marcarlo como el que se proyecta. Solo puede haber uno por película: su ▶ se pone azul, aparece una barrita azul a su izquierda, el nombre pasa a negrita y sube a la primera posición de la lista. Si marcas otro, el anterior se desmarca solo; pulsar otra vez el mismo lo desmarca.</span>
         </div>
         <div class="help-row">
           <span style="font-size:0.76rem;margin-top:1px;color:#16a34a;font-weight:800;">✓</span>
@@ -1310,7 +1310,7 @@
 
       <div class="help-credits">
         <strong>Ingestas Mostra — Cines Babel</strong><br>
-        Versión actual: <strong>v1.5</strong> · basada en Lista de Ingestas v1.18<br>
+        Versión actual: <strong>v1.6</strong> · basada en Lista de Ingestas v1.18<br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1356,7 +1356,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>Mostra v1.5 · Diseño por Pablo Goitia</footer>
+<footer>Mostra v1.6 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1383,9 +1383,10 @@
 // · v1.3: cada archivo se puede marcar como "a proyectar" (uno) y "probado".
 // · v1.4: el archivo a proyectar se señala de forma discreta (icono azul y barrita).
 // · v1.5: en Soporte "Otro" se escribe el nombre del disco en la propia chapita.
+// · v1.6: el archivo a proyectar se coloca siempre el primero de su película.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = "mostra-v1.5";
+const APP_VERSION = "mostra-v1.6";
 const TABLE       = "mostra_peliculas";
 const LS = {
   rows:   "mostra_rows",
@@ -1763,6 +1764,8 @@ function migrateRow(row) {
   // Solo puede haber un archivo a proyectar por película
   let yaHay = false;
   row.archivos.forEach(a => { if (a.proyectar) { if (yaHay) a.proyectar = false; yaHay = true; } });
+  // …y siempre va el primero (también en datos guardados con versiones anteriores)
+  subirProyectarArriba(row);
   delete row.archivo;
   if (Array.isArray(row.proj)) {
     row.proj = row.proj.map((p, i) => {
@@ -2077,7 +2080,16 @@ function toggleProyectar(id, idx) {
   const marcar = !ficha.proyectar;
   row.archivos.forEach(a => { a.proyectar = false; });
   ficha.proyectar = marcar;
+  // El elegido sube al primer puesto de la lista; los demás conservan su orden.
+  if (marcar) subirProyectarArriba(row);
   render(); scheduleSave(id);
+}
+
+// Coloca el archivo a proyectar el primero de la lista de su película.
+function subirProyectarArriba(row) {
+  const list = row.archivos || [];
+  const i = list.findIndex(a => a.proyectar);
+  if (i > 0) list.unshift(list.splice(i, 1)[0]);
 }
 
 // Marca (o desmarca) un archivo como probado.

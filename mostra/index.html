@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas Mostra — Cines Babel · v1.4</title>
+  <title>Ingestas Mostra — Cines Babel · v1.5</title>
   <!-- Icono propio de la Mostra: mostra-icon.png, en esta misma carpeta
        (mostra/), junto al HTML. Se usa como favicon, icono de la app en iOS
        y logo de la cabecera. El ?v=1 evita que el navegador se quede con una
@@ -451,6 +451,30 @@
     }
     .otro-input.visible { display: block; }
     .otro-input::placeholder { color: var(--text3); }
+
+    /* Soporte "Otro" con nombre propio (para distinguir los discos duros).
+       La chapita naranja es un campo de texto: vacía muestra OTRO, y lo que
+       se escribe ocupa su lugar. La ✕ la devuelve a "—". */
+    .otro-wrap { display: inline-flex; align-items: center; gap: 2px; justify-content: center; }
+    .fmt-btn.otro-edit {
+      width: 84px; height: 22px; border: none; outline: none; cursor: text;
+      text-align: center; padding: 0 6px;
+      -webkit-user-select: text; user-select: text;
+    }
+    @supports (field-sizing: content) {
+      .fmt-btn.otro-edit { field-sizing: content; width: auto; min-width: 56px; max-width: 140px; }
+    }
+    .fmt-btn.otro-edit::placeholder { color: inherit; opacity: 1; }
+    .fmt-btn.otro-edit:focus { box-shadow: 0 0 0 2px rgba(128,74,16,0.35); transform: none; }
+    .fmt-btn.otro-edit:hover { transform: none; }
+    .otro-x {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--text3); font-size: 0.6rem; line-height: 1;
+      padding: 3px 3px; border-radius: 4px; opacity: 0; transition: opacity 0.15s, color 0.15s;
+    }
+    .otro-wrap:hover .otro-x, .otro-wrap:focus-within .otro-x { opacity: 1; }
+    .otro-x:hover { color: #ef4444; }
+    @media (hover: none) { .otro-x { opacity: 1; } }
 
     /* ── TITLE INPUT ── */
     .cell-input {
@@ -1192,7 +1216,7 @@
 
         <div class="help-row">
           <span class="help-badge" style="background:var(--s-blank);color:var(--text2);">—</span>
-          <span><strong style="color:var(--text);">Soporte</strong> — Cómo se ha recibido la película: sin especificar, <span style="color:#1a5080;font-weight:600;">Físico</span>, <span style="color:#3a1a80;font-weight:600;">Remoto</span> u <span style="color:#804a10;font-weight:600;">Otro</span> (aparece un campo para especificar).</span>
+          <span><strong style="color:var(--text);">Soporte</strong> — Cómo se ha recibido la película: sin especificar, <span style="color:#1a5080;font-weight:600;">Físico</span>, <span style="color:#3a1a80;font-weight:600;">Remoto</span> u <span style="color:#804a10;font-weight:600;">Otro</span>. En «Otro» la chapita se puede escribir: pon el nombre del disco (por ejemplo, DISCO 3) y aparecerá en lugar de OTRO. La ✕ de al lado la devuelve a «—».</span>
         </div>
         <div class="help-row" style="margin-top:10px;">
           <span style="font-size:0.82rem;margin-top:1px;">🎬</span>
@@ -1286,7 +1310,7 @@
 
       <div class="help-credits">
         <strong>Ingestas Mostra — Cines Babel</strong><br>
-        Versión actual: <strong>v1.4</strong> · basada en Lista de Ingestas v1.18<br>
+        Versión actual: <strong>v1.5</strong> · basada en Lista de Ingestas v1.18<br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1332,7 +1356,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>Mostra v1.4 · Diseño por Pablo Goitia</footer>
+<footer>Mostra v1.5 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1358,9 +1382,10 @@
 // · v1.2: la fila arrastrada va pegada al cursor y las demás se deslizan.
 // · v1.3: cada archivo se puede marcar como "a proyectar" (uno) y "probado".
 // · v1.4: el archivo a proyectar se señala de forma discreta (icono azul y barrita).
+// · v1.5: en Soporte "Otro" se escribe el nombre del disco en la propia chapita.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = "mostra-v1.4";
+const APP_VERSION = "mostra-v1.5";
 const TABLE       = "mostra_peliculas";
 const LS = {
   rows:   "mostra_rows",
@@ -2441,14 +2466,10 @@ function render() {
       </td>
       <td class="row-num">${rowNum}</td>
       <td class="center">
+        ${row.fmt === 3 ? soporteOtroHTML(row, "d", "fmt-btn otro otro-edit") : `
         <div class="fmt-btn ${fmt.cls}"
           onclick="cycleFmt(${row.id})"
-          title="Click para cambiar soporte">${fmt.label}</div>
-        <input class="otro-input ${row.fmt===3?'visible':''}"
-          type="text" placeholder="Especificar…"
-          value="${escHtml(row.otroText)}"
-          oninput="updateOtroText(${row.id},this.value)"
-          onclick="event.stopPropagation()"/>
+          title="Click para cambiar soporte">${fmt.label}</div>`}
       </td>
       <td>
         <input class="cell-input" type="text"
@@ -2617,8 +2638,8 @@ function renderMobile() {
       </div>
       <div class="card-m-badges">
         <span class="card-m-blabel">Sop.</span>
-        <button class="card-m-btn" style="background:${sopBg};color:${sopCol};" onclick="if(!touchMoved)cycleFmt(${row.id})">${fmt.label}</button>
-        ${row.fmt===3 ? `<input style="background:transparent;border:none;border-bottom:1px dashed var(--border);color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif;font-size:0.62rem;width:56px;padding:1px 2px;outline:none;" type="text" placeholder="Tipo…" value="${escHtml(row.otroText)}" oninput="updateOtroText(${row.id},this.value)"/>` : ""}
+        ${row.fmt === 3 ? soporteOtroHTML(row, "m", "fmt-btn otro otro-edit card-m-btn") : `
+        <button class="card-m-btn" style="background:${sopBg};color:${sopCol};" onclick="if(!touchMoved)cycleFmt(${row.id})">${fmt.label}</button>`}
         <div class="card-m-bsep"></div>
         <span class="card-m-blabel">Enc.</span>
         <button class="card-m-btn" style="background:${encBg};color:${encCol};" onclick="if(!touchMoved)cycleEnc(${row.id})">${enc.label}</button>
@@ -2913,11 +2934,43 @@ function cycleFmt2(id) {
   render(); scheduleSave(id);
 }
 
+// Cicla el Soporte: — → Físico → Remoto → Otro.
+// Al llegar a "Otro" la chapita se convierte en un campo de texto y se
+// pone el cursor en ella para escribir el nombre del disco.
 function cycleFmt(id) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
   row.fmt = ((row.fmt || 0) + 1) % 4;
   if (row.fmt !== 0) activarSiVacia(row);
+  render(); scheduleSave(id);
+  if (row.fmt === 3) {
+    const el = [...document.querySelectorAll(`[data-otro="${id}"]`)].find(e => e.offsetParent !== null);
+    if (el) el.focus();
+  }
+}
+
+// Chapita de Soporte en estado "Otro": un campo con el aspecto de la
+// chapita naranja. Vacío muestra OTRO; lo escrito ocupa su lugar.
+// prefix: "d" escritorio, "m" móvil.
+function soporteOtroHTML(row, prefix, clases) {
+  return `<span class="otro-wrap">
+    <input class="${clases}" type="text" placeholder="Otro"
+      data-otro="${row.id}" id="${prefix}otro-${row.id}"
+      value="${escHtml(row.otroText || "")}" spellcheck="false" autocomplete="off"
+      title="Escribe el nombre del soporte (p. ej. el disco duro)"
+      oninput="updateOtroText(${row.id},this.value)"
+      onkeydown="if(event.key==='Enter')this.blur()"
+      onclick="event.stopPropagation()"/>
+    <button class="otro-x" onclick="quitarOtro(${row.id})" title="Quitar (vuelve a —)">✕</button>
+  </span>`;
+}
+
+// Saca la película del estado "Otro": vuelve a "—" y borra el nombre.
+function quitarOtro(id) {
+  const row = rows.find(r => r.id === id);
+  if (!row) return;
+  row.fmt = 0;
+  row.otroText = "";
   render(); scheduleSave(id);
 }
 

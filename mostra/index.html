@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas Mostra — Cines Babel · v2.6</title>
+  <title>Ingestas Mostra — Cines Babel · v2.7</title>
   <!-- Icono propio de la Mostra: mostra-icon.png, en esta misma carpeta
        (mostra/), junto al HTML. Se usa como favicon, icono de la app en iOS
        y logo de la cabecera. El ?v=1 evita que el navegador se quede con una
@@ -1139,6 +1139,33 @@
     .filter-chip.fc-noprobada { background: var(--surface2); color: var(--text2); border-color: var(--border); }
     .filter-chip.fc-probada   { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
 
+    /* Sección de la Mostra (v2.7) */
+    .sec-select {
+      -webkit-appearance: none; appearance: none;
+      width: 104px; height: 24px; border: none; border-radius: 6px; cursor: pointer;
+      padding: 0 6px; text-align: center; text-align-last: center;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.56rem; font-weight: 800;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      background: var(--s-blank); color: var(--text3); outline: none;
+      transition: box-shadow 0.15s;
+    }
+    .sec-select:hover, .sec-select:focus { box-shadow: 0 0 0 2px var(--accent-dim), 0 0 0 1px var(--accent); }
+    .sec-select option { text-transform: none; font-weight: 600; color: var(--text); background: var(--surface); text-align: left; }
+    .sec-select.oficial,  .cal-chip.sec.oficial,  .filter-chip.fc-sec.oficial  { background: #e0e7ff; color: #3730a3; }
+    .sec-select.cabina,   .cal-chip.sec.cabina,   .filter-chip.fc-sec.cabina   { background: #ccfbf1; color: #115e59; }
+    .sec-select.xaloc,    .cal-chip.sec.xaloc,    .filter-chip.fc-sec.xaloc    { background: #ffedd5; color: #9a3412; }
+    .sec-select.carta,    .cal-chip.sec.carta,    .filter-chip.fc-sec.carta    { background: #e2e8f0; color: #334155; }
+    .sec-select.mostreta, .cal-chip.sec.mostreta, .filter-chip.fc-sec.mostreta { background: #ecfccb; color: #3f6212; }
+    .sec-select.otra,     .cal-chip.sec.otra                                   { background: var(--surface2); color: var(--text2); }
+    .filter-chip.fc-sec { border-color: transparent; }
+    .filter-chip.fc-sec.sinsec { background: var(--s-blank); color: var(--text2); }
+    body.dark .sec-select.oficial,  body.dark .cal-chip.sec.oficial,  body.dark .filter-chip.fc-sec.oficial  { background: rgba(99,102,241,0.22);  color: #c7d2fe; }
+    body.dark .sec-select.cabina,   body.dark .cal-chip.sec.cabina,   body.dark .filter-chip.fc-sec.cabina   { background: rgba(20,184,166,0.20);  color: #5eead4; }
+    body.dark .sec-select.xaloc,    body.dark .cal-chip.sec.xaloc,    body.dark .filter-chip.fc-sec.xaloc    { background: rgba(249,115,22,0.20);  color: #fdba74; }
+    body.dark .sec-select.carta,    body.dark .cal-chip.sec.carta,    body.dark .filter-chip.fc-sec.carta    { background: rgba(148,163,184,0.20); color: #cbd5e1; }
+    body.dark .sec-select.mostreta, body.dark .cal-chip.sec.mostreta, body.dark .filter-chip.fc-sec.mostreta { background: rgba(132,204,22,0.18);  color: #bef264; }
+    .card-m-badges .sec-select { width: auto; min-width: 84px; }
+
     /* Indicadores en la fila de la lista */
     .title-wrap { display: flex; align-items: center; gap: 6px; }
     .conf-badge {
@@ -1446,6 +1473,13 @@
     <div class="filter-chip fc-s4" onclick="toggleFilter('sala','3',this)">S4</div>
     <div class="filter-chip fc-s5" onclick="toggleFilter('sala','4',this)">S5</div>
     <div class="filter-sep"></div>
+    <div class="filter-chip fc-sec oficial"  onclick="toggleFilter('cat','oficial',this)">Sección Oficial</div>
+    <div class="filter-chip fc-sec cabina"   onclick="toggleFilter('cat','cabina',this)">La Cabina</div>
+    <div class="filter-chip fc-sec xaloc"    onclick="toggleFilter('cat','xaloc',this)">Xaloc</div>
+    <div class="filter-chip fc-sec carta"    onclick="toggleFilter('cat','carta',this)">Carta Blanca</div>
+    <div class="filter-chip fc-sec mostreta" onclick="toggleFilter('cat','mostreta',this)">Mostreta</div>
+    <div class="filter-chip fc-sec sinsec"   onclick="toggleFilter('cat','sin',this)">Sin sección</div>
+    <div class="filter-sep"></div>
     <div class="filter-chip fc-conf"   onclick="toggleFilter('conf','si',this)">✓ Confirmadas</div>
     <div class="filter-chip fc-noconf" onclick="toggleFilter('conf','no',this)">Sin confirmar</div>
     <div class="filter-sep"></div>
@@ -1468,6 +1502,7 @@
           <th style="width:18px"></th>
           <th class="center" style="width:66px">Soporte</th>
           <th>Película</th>
+          <th class="center" style="width:112px">Sección</th>
           <th class="center" style="width:66px">Encriptación</th>
           <th class="center" style="width:66px">Formato</th>
           <th style="width:130px">Notas</th>
@@ -1625,6 +1660,10 @@
           <span><strong style="color:var(--text);">Soporte</strong> — Cómo se ha recibido la película: sin especificar, <span style="color:#1a5080;font-weight:600;">Físico</span>, <span style="color:#3a1a80;font-weight:600;">Remoto</span> u <span style="color:#804a10;font-weight:600;">Otro</span>. En «Otro» la chapita se puede escribir: pon el nombre del disco (por ejemplo, DISCO 3) y aparecerá en lugar de OTRO. La ✕ de al lado la devuelve a «—».</span>
         </div>
         <div class="help-row" style="margin-top:10px;">
+          <span class="help-badge" style="background:#e0e7ff;color:#3730a3;">Sec.</span>
+          <span><strong style="color:var(--text);">Sección</strong> — Sección de la Mostra a la que pertenece: Sección Oficial, La Cabina, Xaloc, Carta Blanca, Mostreta u Otra. Cada una tiene su color, sale también en los pases del calendario y se puede filtrar con los botones de la barra.</span>
+        </div>
+        <div class="help-row" style="margin-top:10px;">
           <span style="font-size:0.82rem;margin-top:1px;">🎬</span>
           <span><strong style="color:var(--text);">Película</strong> — Escribe el título y pulsa Enter o haz clic fuera para confirmar.</span>
         </div>
@@ -1720,7 +1759,7 @@
 
       <div class="help-credits">
         <strong>Ingestas Mostra — Cines Babel</strong><br>
-        Versión actual: <strong>v2.6</strong> · basada en Lista de Ingestas v1.18<br>
+        Versión actual: <strong>v2.7</strong> · basada en Lista de Ingestas v1.18<br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1782,7 +1821,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>Mostra v2.6 · Diseño por Pablo Goitia</footer>
+<footer>Mostra v2.7 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1818,9 +1857,10 @@
 // · v2.4: el azul de las salas con pase se calcula siempre (no se guarda).
 // · v2.5: presentaciones y coloquios muy visibles en el calendario.
 // · v2.6: franja del acto en rosa sólido y sin emojis.
+// · v2.7: sección de la Mostra de cada película (columna, filtros y calendario).
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = "mostra-v2.6";
+const APP_VERSION = "mostra-v2.7";
 const TABLE       = "mostra_peliculas";
 const LS = {
   rows:   "mostra_rows",
@@ -1845,7 +1885,7 @@ function initTheme() {
 // FILTROS POR BOTÓN
 // ═══════════════════════════════════════════════════════════════════════════
 
-const activeFilters = { soporte: null, enc: null, fmt: null, estado: null, conf: null, elegido: null, prueba: null, sala: new Set() };
+const activeFilters = { soporte: null, enc: null, fmt: null, estado: null, conf: null, elegido: null, prueba: null, cat: null, sala: new Set() };
 
 function toggleFilter(group, value, el) {
   if (group === 'sala') {
@@ -1912,6 +1952,10 @@ function rowMatchesFilters(row) {
   if (activeFilters.prueba) {
     if ((activeFilters.prueba === "si") !== estaProbada(row)) return false;
   }
+  if (activeFilters.cat) {
+    const c = row.categoria ? claseSeccion(row.categoria) : "sin";
+    if (c !== activeFilters.cat) return false;
+  }
   if (activeFilters.conf === "si" && !row.confirmada) return false;
   if (activeFilters.conf === "no" &&  row.confirmada) return false;
   if (activeFilters.sala.size > 0) {
@@ -1971,6 +2015,7 @@ function clearSearch() {
 function filaContiene(row, q) {
   if ((row.pelicula      || "").toLowerCase().includes(q)) return true;
   if ((row.notas         || "").toLowerCase().includes(q)) return true;
+  if ((row.categoria     || "").toLowerCase().includes(q)) return true;
   if ((row.distribuidora || "").toLowerCase().includes(q)) return true;
   if ((row.otroText      || "").toLowerCase().includes(q)) return true;
   if ((row.fmt2OtroText  || "").toLowerCase().includes(q)) return true;
@@ -2085,6 +2130,7 @@ function mapSupabaseRow(r) {
     projErr:      r.projerr       || ["","","","",""],
     date:         r.date          || null,
     orden:        typeof r.orden === "number" ? r.orden : null,
+    categoria:    r.categoria     || "",
     pases:        Array.isArray(r.pases) ? r.pases : [],
     kdm:          r.kdm && typeof r.kdm === "object" ? r.kdm : null,
     confirmada:   r.confirmada && typeof r.confirmada === "object" ? r.confirmada : null,
@@ -2222,6 +2268,7 @@ function migrateRow(row) {
   } else {
     row.proj = [0,0,0,0,0];
   }
+  if (typeof row.categoria !== "string") row.categoria = "";
   // v2.0: pases, KDM y confirmación
   row.pases = (Array.isArray(row.pases) ? row.pases : [])
     .filter(x => x && typeof x === "object")
@@ -2317,6 +2364,7 @@ function rowToRecord(r) {
     projerr:      r.projErr       || ["","","","",""],
     date:         r.date          || new Date().toISOString(),
     orden:        typeof r.orden === "number" ? r.orden : null,
+    categoria:    r.categoria     || "",
     pases:        r.pases         || [],
     kdm:          r.kdm           || null,
     confirmada:   r.confirmada    || null,
@@ -2448,7 +2496,7 @@ function addEmptyRow() {
     archivos:[],
     proj:[0,0,0,0,0],
     projErr:["","","","",""],
-    pases:[], kdm:null, confirmada:null,
+    categoria:"", pases:[], kdm:null, confirmada:null,
     date:null, isEmpty:true,
   });
 }
@@ -3020,6 +3068,7 @@ function render() {
         </div>
         ${row.isEmpty || !(row.confirmada || proximoPase(row)) ? "" : `<div class="title-sub">${confBadgeHTML(row)}${proxPaseHTML(row)}</div>`}
       </td>
+      <td class="center">${row.isEmpty ? "" : seccionSelectHTML(row)}</td>
       <td class="center">
         <div class="enc-btn ${enc.cls}"
           onclick="cycleEnc(${row.id})"
@@ -3099,7 +3148,7 @@ function render() {
       const dtr = document.createElement("tr");
       dtr.className = "detail-row";
       dtr.dataset.id = row.id;
-      dtr.innerHTML = `<td colspan="16">${detallePanelHTML(row, "d")}</td>`;
+      dtr.innerHTML = `<td colspan="17">${detallePanelHTML(row, "d")}</td>`;
       tbody.appendChild(dtr);
     }
   });
@@ -3182,6 +3231,7 @@ function renderMobile() {
         </div>
       </div>
       <div class="card-m-badges">
+        ${row.isEmpty ? "" : `<span class="card-m-blabel">Secc.</span>${seccionSelectHTML(row)}<div class="card-m-bsep"></div>`}
         <span class="card-m-blabel">Sop.</span>
         ${row.fmt === 3 ? soporteOtroHTML(row, "m", "fmt-btn otro otro-edit card-m-btn") : `
         <button class="card-m-btn" style="background:${sopBg};color:${sopCol};" onclick="if(!touchMoved)cycleFmt(${row.id})">${fmt.label}</button>`}
@@ -3583,6 +3633,42 @@ function manualAddRow() {
       }, { once: true });
     }
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SECCIÓN DE LA MOSTRA (v2.7)
+// Se guarda el nombre tal cual ("Xaloc", "Carta Blanca"…) en "categoria".
+// Para añadir una sección nueva basta con sumarla a esta lista (y darle
+// colores en el CSS, ".sec-select.<clase>"; si no, sale en gris).
+// ═══════════════════════════════════════════════════════════════════════════
+
+const SECCIONES = [
+  { nombre: "Sección Oficial", cls: "oficial" },
+  { nombre: "La Cabina",       cls: "cabina" },
+  { nombre: "Xaloc",           cls: "xaloc" },
+  { nombre: "Carta Blanca",    cls: "carta" },
+  { nombre: "Mostreta",        cls: "mostreta" },
+  { nombre: "Otra",            cls: "otra" },
+];
+function claseSeccion(nombre) {
+  const s = SECCIONES.find(x => x.nombre === nombre);
+  return s ? s.cls : (nombre ? "otra" : "");
+}
+function seccionSelectHTML(row) {
+  const v = row.categoria || "";
+  const nombres = SECCIONES.map(s => s.nombre);
+  if (v && !nombres.includes(v)) nombres.push(v);
+  return `<select class="sec-select ${claseSeccion(v)}" title="Sección de la Mostra"
+      onchange="setCategoria(${row.id}, this.value)">
+      <option value="" ${v ? "" : "selected"}>— sección</option>
+      ${nombres.map(n => `<option value="${escHtml(n)}" ${n === v ? "selected" : ""}>${escHtml(n)}</option>`).join("")}
+    </select>`;
+}
+function setCategoria(id, valor) {
+  const row = rows.find(r => r.id === id);
+  if (!row) return;
+  row.categoria = valor;
+  render(); scheduleSave(id);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4187,6 +4273,7 @@ function renderCalendario() {
           ${actoDe(pase) ? `<div class="cal-acto">${escHtml(pase.etiqueta)}</div>` : ""}
           ${arch && arch.nombre ? `<div class="cal-archivo"><span class="pl">▶</span><span class="nm">${escHtml(arch.nombre)}</span>${arch.probado ? `<span class="okm">✓</span>` : ""}</div>` : ""}
           <div class="cal-chips">
+            ${row.categoria ? `<span class="cal-chip sec ${claseSeccion(row.categoria)}">${escHtml(row.categoria)}</span>` : ""}
             ${sopTxt ? `<span class="cal-chip">${escHtml(sopTxt)}</span>` : ""}
             ${(row.enc || 0) === 1 ? `<span class="cal-chip">Libre</span>` : ""}
             ${kdm ? `<span class="cal-chip kdm ${kdm.nivel}">${escHtml(kdm.texto)}</span>` : ""}
@@ -4264,7 +4351,7 @@ function renderCalModal() {
   body.innerHTML = `
     <div class="cal-modal-head">
       <div>
-        <div class="cal-modal-eyebrow">Soporte: ${escHtml(sop)} · Encriptación: ${ENC_STATES[row.enc || 0].label} · Formato: ${escHtml(row.fmt2 === 3 ? (row.fmt2OtroText || "Otro") : FMT2_STATES[row.fmt2 || 0].label)}</div>
+        <div class="cal-modal-eyebrow">${row.categoria ? `Sección: ${escHtml(row.categoria)} · ` : ""}Soporte: ${escHtml(sop)} · Encriptación: ${ENC_STATES[row.enc || 0].label} · Formato: ${escHtml(row.fmt2 === 3 ? (row.fmt2OtroText || "Otro") : FMT2_STATES[row.fmt2 || 0].label)}</div>
         <h2>${escHtml(row.pelicula)}</h2>
         <div class="cal-modal-salas">
           ${estadosSalas(row).map((p, i) => `<span class="ms-sala"><i class="proj-dot ${PROJ_CLASSES[p]}"></i>S${i + 1} ${PROJ_LABELS[p]}</span>`).join("")}

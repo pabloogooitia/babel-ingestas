@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas Mostra — Cines Babel · v2.8</title>
+  <title>Ingestas Mostra — Cines Babel · v2.9</title>
   <!-- Icono propio de la Mostra: mostra-icon.png, en esta misma carpeta
        (mostra/), junto al HTML. Se usa como favicon, icono de la app en iOS
        y logo de la cabecera. El ?v=1 evita que el navegador se quede con una
@@ -202,6 +202,16 @@
       box-shadow: 0 4px 12px rgba(232,85,63,0.4);
     }
 
+    .btn-undo {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 27px; flex-shrink: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; font-weight: 700; line-height: 1;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.75); border-radius: 8px; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-undo:hover { background: rgba(255,255,255,0.16); color: #fff; }
+    .btn-undo.vacio { color: rgba(255,255,255,0.22); }
+    .btn-undo.vacio:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.3); }
     .btn-config {
       display: inline-flex; align-items: center;
       font-size: 0.6rem; font-weight: 600;
@@ -1389,6 +1399,8 @@
       <div class="sync-dot local" id="syncDot"></div>
       <span id="syncText">Sin conectar</span>
     </div>
+    <button class="btn-undo" id="btnDeshacer" onclick="deshacer()" title="Deshacer (Ctrl+Z / ⌘Z)">↶</button>
+    <button class="btn-undo" id="btnRehacer" onclick="rehacer()" title="Rehacer (Ctrl+Shift+Z / ⌘⇧Z)">↷</button>
     <button class="btn-save" id="btnSave" onclick="saveNow()" title="Guardar ahora (Ctrl+S)">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
       Guardar
@@ -1722,6 +1734,14 @@
       <div class="help-section">
         <div class="help-section-title">Opciones avanzadas</div>
         <div class="help-row">
+          <span class="help-kbd">Ctrl+Z</span>
+          <span><strong style="color:var(--text);">Deshacer</strong> (<span class="help-kbd">⌘+Z</span> en Mac, o el botón <strong style="color:var(--text);">↶</strong> de la cabecera). Deshace el último cambio en cualquier película: título, sección, soporte, estados de sala, archivos, pases, KDM, confirmación, posición… y también recupera una fila borrada. Se puede pulsar varias veces seguidas. Un aviso abajo dice qué se ha deshecho.</span>
+        </div>
+        <div class="help-row" style="margin-top:10px;">
+          <span class="help-kbd">Ctrl+⇧+Z</span>
+          <span><strong style="color:var(--text);">Rehacer</strong> (<span class="help-kbd">⌘+⇧+Z</span> en Mac, <span class="help-kbd">Ctrl+Y</span>, o el botón <strong style="color:var(--text);">↷</strong>). Vuelve a aplicar lo deshecho. Funciona aunque el cambio ya se hubiera guardado en Supabase. Si estás escribiendo en una casilla, Ctrl+Z deshace primero el texto de esa casilla, como siempre. El historial se pierde al recargar la página.</span>
+        </div>
+        <div class="help-row" style="margin-top:10px;">
           <span class="help-kbd">Ctrl+S</span>
           <span>Guarda al instante (<span class="help-kbd">⌘+S</span> en Mac). Igual que el botón <strong style="color:var(--text);">Guardar</strong>.</span>
         </div>
@@ -1770,7 +1790,7 @@
 
       <div class="help-credits">
         <strong>Ingestas Mostra — Cines Babel</strong><br>
-        Versión actual: <strong>v2.8</strong> · basada en Lista de Ingestas v1.18<br>
+        Versión actual: <strong>v2.9</strong> · basada en Lista de Ingestas v1.18<br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1832,7 +1852,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>Mostra v2.8 · Diseño por Pablo Goitia</footer>
+<footer>Mostra v2.9 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1870,9 +1890,10 @@
 // · v2.6: franja del acto en rosa sólido y sin emojis.
 // · v2.7: sección de la Mostra de cada película (columna, filtros y calendario).
 // · v2.8: columna Sección tras Formato y con un estilo discreto en la lista.
+// · v2.9: deshacer y rehacer (Ctrl+Z / ⌘Z) de cualquier cambio.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = "mostra-v2.8";
+const APP_VERSION = "mostra-v2.9";
 const TABLE       = "mostra_peliculas";
 const LS = {
   rows:   "mostra_rows",
@@ -2114,7 +2135,7 @@ function handleRealtimeChange(payload) {
     rows = rows.filter(r => r.id !== deletedId);
     expanded.delete(deletedId);
     if (!rows.some(r => r.isEmpty)) addEmptyRow();
-    saveLocal(); render(); return;
+    actualizarFotos(); saveLocal(); render(); return;
   }
 
   const mapped = mapSupabaseRow(newRecord);
@@ -2122,7 +2143,7 @@ function handleRealtimeChange(payload) {
   if (idx !== -1) rows[idx] = mapped;
   else rows.unshift(mapped);
   if (!rows.some(r => r.isEmpty)) addEmptyRow();
-  saveLocal(); render();
+  actualizarFotos(); saveLocal(); render();
 }
 
 // Fila de Supabase (snake_case) → formato interno (camelCase)
@@ -2307,6 +2328,7 @@ function loadLocal() {
     if (saved) {
       const parsed = JSON.parse(saved).map(migrateRow);
       rows = deduplicateRows(parsed.filter(r => !r.isEmpty));
+      actualizarFotos();
     }
   } catch(e) {}
   addEmptyRow();
@@ -2466,6 +2488,7 @@ async function loadFromSheets(silent) {
     // Si mientras llegaba la respuesta alguien ha empezado a editar, no se pisa
     if (hasPendingChanges || isEditing()) return;
     rows = deduplicateRows(data.map(mapSupabaseRow));
+    actualizarFotos();
     addEmptyRow();
     setSyncStatus("synced", "Conectado ✓");
     render(); saveLocal();
@@ -2480,6 +2503,7 @@ async function loadFromSheets(silent) {
 }
 
 function scheduleSave(rowId) {
+  if (rowId !== undefined) registrarCambio(rowId);
   saveLocal();
   if (!supabaseUrl || !supabaseKey) return;
   if (rowId !== undefined) pendingRowIds.add(rowId);
@@ -2493,6 +2517,153 @@ function saveNow() {
   if (supabaseUrl && supabaseKey) syncToSheets();
   else { saveLocal(); showToast("💾 Guardado localmente"); }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DESHACER / REHACER (v2.9) · Ctrl+Z / ⌘Z y Ctrl+Shift+Z / ⌘⇧Z / Ctrl+Y
+//
+// Cómo funciona: se guarda una "foto" (copia en texto) de cada película tal
+// como estaba. Cada vez que algo cambia en una película (scheduleSave), se
+// compara con su foto y, si es distinta, se apunta en el historial el
+// "antes" y el "después". Deshacer vuelve a poner el "antes" y lo guarda en
+// Supabase como un cambio más, así que funciona aunque ya se hubiera guardado.
+//
+// · Varios cambios seguidos en el mismo campo de la misma película (por
+//   ejemplo, ir escribiendo una nota) cuentan como uno solo.
+// · Los cambios que llegan de otros ordenadores no entran en el historial.
+// · El historial es de esta pestaña: se pierde al recargar la página.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const HISTORIAL_MAX = 100;
+const AGRUPAR_MS    = 3000;
+let historialDeshacer = [];
+let historialRehacer  = [];
+let aplicandoHistorial = false;
+const fotos = new Map();   // id → foto (texto) de la película
+
+function foto(row) { return JSON.stringify(row); }
+
+// Rehace las fotos de todas las películas (al cargar o al llegar cambios de fuera)
+function actualizarFotos() {
+  fotos.clear();
+  rows.forEach(r => { if (!r.isEmpty) fotos.set(r.id, foto(r)); });
+  pintarBotonesHistorial();
+}
+
+function camposCambiados(antes, despues) {
+  const a = antes ? JSON.parse(antes) : {};
+  const d = despues ? JSON.parse(despues) : {};
+  const claves = new Set([...Object.keys(a), ...Object.keys(d)]);
+  return [...claves].filter(k => k !== "date" && JSON.stringify(a[k]) !== JSON.stringify(d[k])).sort();
+}
+
+function apuntarEnHistorial(id, antes, despues) {
+  const campos = camposCambiados(antes, despues).join(",");
+  const ahora  = Date.now();
+  const ultimo = historialDeshacer[historialDeshacer.length - 1];
+  // Agrupar con el anterior si es la misma película, los mismos campos y seguido
+  if (ultimo && ultimo.id === id && ultimo.campos === campos && antes !== null && despues !== null
+      && ultimo.despues !== null && ahora - ultimo.cuando < AGRUPAR_MS) {
+    ultimo.despues = despues;
+    ultimo.cuando  = ahora;
+  } else {
+    historialDeshacer.push({ id, antes, despues, campos, cuando: ahora });
+    if (historialDeshacer.length > HISTORIAL_MAX) historialDeshacer.shift();
+  }
+  historialRehacer = [];
+  pintarBotonesHistorial();
+}
+
+// Se llama desde scheduleSave: apunta el cambio de una película
+function registrarCambio(id) {
+  if (aplicandoHistorial) return;
+  const row = rows.find(r => r.id === id);
+  const antes = fotos.has(id) ? fotos.get(id) : null;
+  if (!row) return;
+  if (row.isEmpty && antes === null) return;          // la fila vacía de "Nueva película"
+  const ahora = foto(row);
+  if (ahora === antes) return;
+  apuntarEnHistorial(id, antes, row.isEmpty ? null : ahora);
+  if (row.isEmpty) fotos.delete(id); else fotos.set(id, ahora);
+}
+
+const NOMBRES_CAMPO = {
+  pelicula: "título", categoria: "sección", fmt: "soporte", otroText: "soporte",
+  fmt2: "formato", fmt2OtroText: "formato", enc: "encriptación", notas: "notas",
+  distribuidora: "distribuidora", archivos: "archivos", proj: "salas", projErr: "salas",
+  pases: "pases", kdm: "KDM", confirmada: "confirmación", orden: "posición", isEmpty: "película",
+};
+function describirCambio(c) {
+  const base = c.antes || c.despues;
+  const titulo = base ? (JSON.parse(base).pelicula || "sin título") : "";
+  if (c.antes === null)   return `nueva película «${titulo}»`;
+  if (c.despues === null) return `borrado de «${titulo}»`;
+  const nombres = [...new Set(c.campos.split(",").filter(Boolean).map(k => NOMBRES_CAMPO[k] || k))];
+  return `${nombres.join(", ") || "cambio"} de «${titulo}»`;
+}
+
+// Pone una película tal como estaba en "texto" (null = que no exista)
+function aplicarFoto(id, texto) {
+  aplicandoHistorial = true;
+  try {
+    if (texto === null) {
+      rows = rows.filter(r => r.id !== id);
+      expanded.delete(id);
+      fotos.delete(id);
+      pendingRowIds.delete(id);
+      pendingDeletes.add(id);
+      if (!rows.some(r => r.isEmpty)) addEmptyRow();
+    } else {
+      const fila = migrateRow(JSON.parse(texto));
+      fila.isEmpty = false;
+      const i = rows.findIndex(r => r.id === id);
+      if (i !== -1) rows[i] = fila; else rows.push(fila);
+      fotos.set(id, texto);
+      pendingDeletes.delete(id);
+      pendingRowIds.add(id);
+    }
+    render();
+    scheduleSave(undefined);
+  } finally {
+    aplicandoHistorial = false;
+  }
+}
+
+function deshacer() {
+  const c = historialDeshacer.pop();
+  if (!c) { showToast("No hay nada que deshacer"); pintarBotonesHistorial(); return; }
+  aplicarFoto(c.id, c.antes);
+  historialRehacer.push(c);
+  pintarBotonesHistorial();
+  showToast("↶ Deshecho: " + describirCambio(c));
+}
+function rehacer() {
+  const c = historialRehacer.pop();
+  if (!c) { showToast("No hay nada que rehacer"); pintarBotonesHistorial(); return; }
+  aplicarFoto(c.id, c.despues);
+  historialDeshacer.push(c);
+  pintarBotonesHistorial();
+  showToast("↷ Rehecho: " + describirCambio(c));
+}
+function pintarBotonesHistorial() {
+  const bd = document.getElementById("btnDeshacer");
+  const br = document.getElementById("btnRehacer");
+  if (bd) {
+    bd.classList.toggle("vacio", !historialDeshacer.length);
+    const c = historialDeshacer[historialDeshacer.length - 1];
+    bd.title = c ? "Deshacer: " + describirCambio(c) + " (Ctrl+Z / ⌘Z)" : "Nada que deshacer";
+  }
+  if (br) {
+    br.classList.toggle("vacio", !historialRehacer.length);
+    const c = historialRehacer[historialRehacer.length - 1];
+    br.title = c ? "Rehacer: " + describirCambio(c) + " (Ctrl+Shift+Z / ⌘⇧Z)" : "Nada que rehacer";
+  }
+}
+
+// Para saber si en una casilla se ha tecleado algo desde que se entró en ella
+document.addEventListener("focusin", e => {
+  const el = e.target;
+  if (el && el.tagName === "INPUT") el.dataset.v0 = el.value;
+});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // GESTIÓN DE FILAS
@@ -3017,7 +3188,7 @@ function aplicarNuevoOrden(id, ids) {
   // mismo hueco), se renumera toda la lista 0, 1, 2… y se recalcula.
   if (kp !== null && kn !== null && !(kn - kp > 1e-6)) {
     rows.filter(r => !r.isEmpty && r.id !== id).sort(compararManual)
-      .forEach((r, i) => { r.orden = i; pendingRowIds.add(r.id); });
+      .forEach((r, i) => { r.orden = i; pendingRowIds.add(r.id); fotos.set(r.id, foto(r)); });
     kp = sortKey(prev); kn = sortKey(next);
   }
 
@@ -3329,6 +3500,7 @@ function importBackup(input) {
 
       const anteriores = rows.filter(r => !r.isEmpty).map(r => r.id);
       rows = deduplicateRows(imported);
+      historialDeshacer = []; historialRehacer = []; actualizarFotos();
       const nuevos = new Set(rows.map(r => r.id));
       anteriores.forEach(id => { if (!nuevos.has(id)) pendingDeletes.add(id); });
       rows.forEach(r => pendingRowIds.add(r.id));
@@ -3619,6 +3791,9 @@ function handleDistribuidoraChange(id, input) { handleTextoCampo(id, input, "dis
 // ═══════════════════════════════════════════════════════════════════════════
 
 function removeRow(id) {
+  const fila = rows.find(r => r.id === id);
+  if (fila && !fila.isEmpty) apuntarEnHistorial(id, fotos.get(id) || foto(fila), null);
+  fotos.delete(id);
   rows = rows.filter(r => r.id !== id);
   expanded.delete(id);
   pendingDeletes.add(id);
@@ -4470,6 +4645,20 @@ function ocultarPopover() {
 // ═══════════════════════════════════════════════════════════════════════════
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && calModalId !== null) { cerrarPelicula(); return; }
+  const mod = e.ctrlKey || e.metaKey;
+  const tecla = (e.key || "").toLowerCase();
+  if (mod && (tecla === "z" || tecla === "y")) {
+    // Si se está escribiendo en una casilla y ya se ha tecleado algo en
+    // ella, Ctrl+Z deshace el texto como siempre (lo hace el navegador).
+    const el = document.activeElement;
+    const escribiendo = el && el.tagName === "INPUT" && /^(text|search)$/.test(el.type || "text")
+      && el.value !== (el.dataset.v0 !== undefined ? el.dataset.v0 : el.value);
+    if (escribiendo) return;
+    e.preventDefault();
+    if (el && el.blur && el !== document.body) el.blur();
+    if (tecla === "y" || e.shiftKey) rehacer(); else deshacer();
+    return;
+  }
   if ((e.ctrlKey || e.metaKey) && e.key === "s") {
     e.preventDefault();
     saveNow();

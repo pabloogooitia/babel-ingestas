@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas Mostra — Cines Babel · v2.0</title>
+  <title>Ingestas Mostra — Cines Babel · v2.2</title>
   <!-- Icono propio de la Mostra: mostra-icon.png, en esta misma carpeta
        (mostra/), junto al HTML. Se usa como favicon, icono de la app en iOS
        y logo de la cabecera. El ?v=1 evita que el navegador se quede con una
@@ -1104,6 +1104,25 @@
     .conf-btn.quitar { background: transparent; color: var(--text2); border-color: var(--border); box-shadow: none; }
     .conf-btn.quitar:hover { color: var(--bad); border-color: var(--bad-line); filter: none; }
 
+    /* Botón de ordenar por próximo pase */
+    .btn-orden {
+      display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 700;
+      color: var(--text2); background: var(--surface);
+      border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 14px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn-orden:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-orden.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 14px rgba(63,127,240,0.3); }
+    body.orden-auto .drag-handle { visibility: hidden; }
+
+    /* Filtros nuevos (v2.1) */
+    .filter-chip.fc-sinsop    { background: var(--s-blank); color: var(--text2); border-color: var(--s-blank); }
+    .filter-chip.fc-elegido   { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+    .filter-chip.fc-noelegido,
+    .filter-chip.fc-noprobada { background: var(--surface2); color: var(--text2); border-color: var(--border); }
+    .filter-chip.fc-probada   { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
+
     /* Indicadores en la fila de la lista */
     .title-wrap { display: flex; align-items: center; gap: 6px; }
     .conf-badge {
@@ -1142,6 +1161,8 @@
       .search-wrap { padding: 8px 12px; gap: 6px; flex-wrap: wrap; }
       .search-inner { max-width: 100%; flex: 1; transition: all 0.2s; }
       .btn-add-row { order: 3; width: 100%; justify-content: center; margin-top: 0; }
+      .btn-orden { order: 3; width: 100%; justify-content: center; }
+      .search-wrap.focused .btn-orden { display: none; }
       .search-wrap.focused .btn-add-row { display: none; }
       .search-wrap.focused .search-count { display: none; }
       .search-wrap.focused .btn-clear { display: none; }
@@ -1378,10 +1399,13 @@
     </div>
     <span class="search-count" id="searchCount" style="display:none;"></span>
     <button class="btn-clear" id="clearSearch" onclick="clearSearch()" style="display:none;">✕ Limpiar</button>
+    <button class="btn-orden" id="btnOrden" onclick="toggleOrdenAuto()"
+      title="Ordena la lista por el próximo pase (lo más urgente arriba). Vuelve a pulsar para el orden manual.">⇅ Por próximo pase</button>
     <button class="btn-add-row" onclick="manualAddRow()">+ Añadir fila</button>
   </div>
 
   <div class="filter-bar">
+    <div class="filter-chip fc-sinsop" onclick="toggleFilter('soporte','blank',this)" title="Soporte sin indicar (—): no se sabe en qué disco está">Sin soporte</div>
     <div class="filter-chip fc-fisico" onclick="toggleFilter('soporte','fisico',this)">Físico</div>
     <div class="filter-chip fc-remoto" onclick="toggleFilter('soporte','remoto',this)">Remoto</div>
     <div class="filter-chip fc-sop-otro" onclick="toggleFilter('soporte','otro',this)">Otro</div>
@@ -1406,6 +1430,12 @@
     <div class="filter-sep"></div>
     <div class="filter-chip fc-conf"   onclick="toggleFilter('conf','si',this)">✓ Confirmadas</div>
     <div class="filter-chip fc-noconf" onclick="toggleFilter('conf','no',this)">Sin confirmar</div>
+    <div class="filter-sep"></div>
+    <div class="filter-chip fc-elegido"   onclick="toggleFilter('elegido','si',this)" title="Tienen un archivo marcado con ▶ para proyectar">▶ Archivo elegido</div>
+    <div class="filter-chip fc-noelegido" onclick="toggleFilter('elegido','no',this)" title="Aún no tienen archivo marcado para proyectar">Sin archivo elegido</div>
+    <div class="filter-sep"></div>
+    <div class="filter-chip fc-probada"   onclick="toggleFilter('prueba','si',this)" title="El archivo elegido está probado ✓ (si no hay elegido, alguno de sus archivos)">✓ Probadas</div>
+    <div class="filter-chip fc-noprobada" onclick="toggleFilter('prueba','no',this)" title="Sin ningún archivo probado">No probadas</div>
     <div class="filter-sep"></div>
     <div class="filter-chip fc-distri" id="chipDistri" onclick="toggleDistribuidora()"
          title="Mostrar u ocultar la columna Distribuidora">⊞ Distribuidoras</div>
@@ -1475,6 +1505,10 @@
           <span style="font-size:0.82rem;margin-top:1px;">➕</span>
           <span>Las películas nuevas entran arriba del todo; luego arrástralas a su sitio.</span>
         </div>
+        <div class="help-row">
+          <span style="font-size:0.82rem;margin-top:1px;">⇅</span>
+          <span><strong style="color:var(--text);">Por próximo pase</strong> — El botón junto a «+ Añadir fila» ordena la lista sola: primero las películas con el pase más cercano, luego las que aún no tienen pase y al final las que ya solo tienen pases pasados. Mientras está activo no se puede arrastrar; al apagarlo vuelve tu orden manual tal cual. Se recuerda en cada ordenador.</span>
+        </div>
       </div>
 
       <div class="help-section">
@@ -1534,6 +1568,10 @@
         <div class="help-row">
           <span style="font-size:0.82rem;margin-top:1px;">💡</span>
           <span>Todo se comprueba para <strong style="color:var(--text);">la sala del pase</strong>: su estado S1–S5 y su KDM. Para saber si la KDM aguanta hasta el final, se cuentan 3 horas desde el inicio del pase.</span>
+        </div>
+        <div class="help-row">
+          <div class="help-dot" style="background:var(--p-falta);"></div>
+          <span>Al poner un pase en una sala, si la película estaba en <strong style="color:var(--text);">rojo</strong> (No copiado) en esa sala, pasa sola a <strong style="color:var(--text);">azul</strong> (Falta): así se ve en la lista dónde hay que copiarla. Si ya estaba copiando, lista o con error, no se toca. Si quitas o mueves el pase y la sala sigue en azul sin ningún otro pase, vuelve a rojo.</span>
         </div>
       </div>
 
@@ -1620,6 +1658,10 @@
           <span><strong style="color:var(--text);">Buscador</strong> — Busca en título, notas, distribuidora, archivos y estados. Varias películas a la vez separándolas con comas.</span>
         </div>
         <div class="help-row" style="margin-top:10px;">
+          <span style="font-size:0.82rem;margin-top:1px;">🔘</span>
+          <span><strong style="color:var(--text);">Filtros</strong> — Además de soporte, encriptación, formato, estado y sala: <strong style="color:var(--text);">Sin soporte</strong> (no se sabe en qué disco está), <strong style="color:var(--text);">Confirmadas / Sin confirmar</strong>, <strong style="color:var(--text);">▶ Archivo elegido / Sin archivo elegido</strong> y <strong style="color:var(--text);">✓ Probadas / No probadas</strong> (cuenta el archivo elegido; si aún no hay, cualquiera de sus archivos). Se pueden combinar.</span>
+        </div>
+        <div class="help-row" style="margin-top:10px;">
           <span style="font-size:0.82rem;margin-top:1px;">⚙</span>
           <span><strong style="color:var(--text);">Supabase</strong> — Usa el mismo proyecto que la Lista de Ingestas normal (tabla <em>mostra_peliculas</em>). Si el ordenador ya tiene configurada la lista normal, no hay que tocar nada. Cuando una versión nueva necesita columnas nuevas, basta con volver a ejecutar <em>setup-supabase.sql</em>.</span>
         </div>
@@ -1652,7 +1694,7 @@
 
       <div class="help-credits">
         <strong>Ingestas Mostra — Cines Babel</strong><br>
-        Versión actual: <strong>v2.0</strong> · basada en Lista de Ingestas v1.18<br>
+        Versión actual: <strong>v2.2</strong> · basada en Lista de Ingestas v1.18<br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1702,7 +1744,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>Mostra v2.0 · Diseño por Pablo Goitia</footer>
+<footer>Mostra v2.2 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1732,9 +1774,11 @@
 // · v1.6: el archivo a proyectar se coloca siempre el primero de su película.
 // · v2.0: vista de calendario, pases por película, KDM (salas y validez) y
 //         confirmación final de cada película.
+// · v2.1: orden por próximo pase y filtros de soporte, archivo elegido y probadas.
+// · v2.2: poner un pase en una sala pone esa sala en "Falta" (azul).
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = "mostra-v2.0";
+const APP_VERSION = "mostra-v2.2";
 const TABLE       = "mostra_peliculas";
 const LS = {
   rows:   "mostra_rows",
@@ -1759,7 +1803,7 @@ function initTheme() {
 // FILTROS POR BOTÓN
 // ═══════════════════════════════════════════════════════════════════════════
 
-const activeFilters = { soporte: null, enc: null, fmt: null, estado: null, conf: null, sala: new Set() };
+const activeFilters = { soporte: null, enc: null, fmt: null, estado: null, conf: null, elegido: null, prueba: null, sala: new Set() };
 
 function toggleFilter(group, value, el) {
   if (group === 'sala') {
@@ -1817,6 +1861,14 @@ function rowMatchesFilters(row) {
     const stateMap = { nocopiado: 0, copiando: 1, listo: 2, falta: 3, error: 4 };
     const target = stateMap[activeFilters.estado];
     if (!(row.proj || []).some(p => p === target)) return false;
+  }
+  if (activeFilters.elegido) {
+    const a = archivoAProyectar(row);
+    const tiene = !!(a && (a.nombre || "").trim());
+    if ((activeFilters.elegido === "si") !== tiene) return false;
+  }
+  if (activeFilters.prueba) {
+    if ((activeFilters.prueba === "si") !== estaProbada(row)) return false;
   }
   if (activeFilters.conf === "si" && !row.confirmada) return false;
   if (activeFilters.conf === "no" &&  row.confirmada) return false;
@@ -2160,6 +2212,21 @@ function loadLocal() {
   render();
 }
 
+// v2.2 · Una sola vez por ordenador: las películas que ya tenían pases de
+// antes ponen en "Falta" (azul) las salas de esos pases que estaban en rojo.
+// Después ya solo lo hacen los propios pases al crearlos o moverlos, para
+// no deshacer lo que alguien cambie a mano.
+function migrarFaltaPases() {
+  try { if (localStorage.getItem("mostra_falta_v22") === "1") return; } catch(e) { return; }
+  rows.forEach(r => {
+    if (r.isEmpty) return;
+    const antes = JSON.stringify(r.proj);
+    SALAS.forEach(s => marcarFaltaSala(r, s));
+    if (JSON.stringify(r.proj) !== antes) scheduleSave(r.id);
+  });
+  try { localStorage.setItem("mostra_falta_v22", "1"); } catch(e) {}
+}
+
 function saveLocal() {
   try { localStorage.setItem(LS.rows, JSON.stringify(rows)); } catch(e) {}
 }
@@ -2314,6 +2381,7 @@ async function loadFromSheets(silent) {
     rows = deduplicateRows(data.map(mapSupabaseRow));
     addEmptyRow();
     setSyncStatus("synced", "Conectado ✓");
+    migrarFaltaPases();
     render(); saveLocal();
   } catch(e) {
     if (silent) { setSyncStatus("error", "Sin conexión — reintentando"); return; }
@@ -2380,10 +2448,49 @@ function ordenParaNueva() {
   return keys.length ? Math.floor(Math.min(...keys)) - 1 : 0;
 }
 
+// Orden manual: el que se hace arrastrando (campo "orden", compartido).
+function compararManual(a, b) {
+  return (sortKey(a) - sortKey(b)) || (b.id - a.id);
+}
+
+// Orden por próximo pase (botón "⇅ Por próximo pase", se recuerda en cada
+// ordenador). No toca el orden manual: al apagarlo vuelve tal cual.
+//   1º las que tienen un pase hoy o más adelante, de la más cercana a la más lejana
+//   2º las que aún no tienen ningún pase
+//   3º las que ya solo tienen pases pasados
+// Dentro de cada grupo (y si dos pases coinciden), manda el orden manual.
+let ordenAuto = false;
+try { ordenAuto = localStorage.getItem("mostra_orden_auto") === "1"; } catch(e) {}
+
+function claveProximidad(row) {
+  const p = proximoPase(row);
+  if (p) return { grupo: 0, cuando: p.fecha + " " + (p.hora || "99:99") };
+  return { grupo: (row.pases || []).length ? 2 : 1, cuando: "" };
+}
+function compararProximidad(a, b) {
+  const ka = claveProximidad(a), kb = claveProximidad(b);
+  return (ka.grupo - kb.grupo) || ka.cuando.localeCompare(kb.cuando) || compararManual(a, b);
+}
+
+function toggleOrdenAuto() {
+  ordenAuto = !ordenAuto;
+  try { localStorage.setItem("mostra_orden_auto", ordenAuto ? "1" : "0"); } catch(e) {}
+  aplicarOrdenAuto();
+  render();
+  showToast(ordenAuto
+    ? "⇅ Lista ordenada por el próximo pase"
+    : "Orden manual (el de arrastrar)");
+}
+function aplicarOrdenAuto() {
+  document.body.classList.toggle("orden-auto", ordenAuto);
+  const btn = document.getElementById("btnOrden");
+  if (btn) btn.classList.toggle("active", ordenAuto);
+}
+
 function getSorted() {
   const empty  = rows.filter(r => r.isEmpty);
   const filled = rows.filter(r => !r.isEmpty)
-    .sort((a, b) => (sortKey(a) - sortKey(b)) || (b.id - a.id));
+    .sort(ordenAuto ? compararProximidad : compararManual);
   return [...empty, ...filled];
 }
 
@@ -2618,7 +2725,7 @@ function esVacio(el) {
 }
 
 function startDrag(e, id) {
-  if (drag) return;
+  if (drag || ordenAuto) return;
   if (e.pointerType === "mouse" && e.button !== 0) return;
   e.preventDefault();
   e.stopPropagation();
@@ -2804,8 +2911,7 @@ function aplicarNuevoOrden(id, ids) {
   // Si dos vecinas están ya pegadísimas (tras muchísimos arrastres en el
   // mismo hueco), se renumera toda la lista 0, 1, 2… y se recalcula.
   if (kp !== null && kn !== null && !(kn - kp > 1e-6)) {
-    getSorted()
-      .filter(r => !r.isEmpty && r.id !== id)
+    rows.filter(r => !r.isEmpty && r.id !== id).sort(compararManual)
       .forEach((r, i) => { r.orden = i; pendingRowIds.add(r.id); });
     kp = sortKey(prev); kn = sortKey(next);
   }
@@ -2922,7 +3028,7 @@ function render() {
           <div class="sala-cell">
             <button class="proj-btn ${PROJ_CLASSES[p]}"
               id="pbtn-${row.id}-${i}"
-              title="S${i+1}: ${PROJ_LABELS[p]} · Mantén pulsado: azul = Falta, sigue manteniendo = Error"
+              title="S${i+1}: ${PROJ_LABELS[p]}${necesitaSala(row, i) ? " · " + tipNecesitaSala(row, i) : ""} · Mantén pulsado: azul = Falta, sigue manteniendo = Error"
             ></button>
             ${p === 4 ? `
               <input class="error-input"
@@ -3500,6 +3606,51 @@ function proximoPase(row) {
   return pasesOrdenados(row).find(p => p.fecha && p.fecha >= hoy) || null;
 }
 
+// Salas en las que hace falta la película: las que tienen un pase hoy o
+// más adelante. En la lista se marcan en azul.
+function pasesFuturosEnSala(row, s) {
+  const hoy = hoyStr();
+  return pasesOrdenados(row).filter(p => p.sala === s && (!p.fecha || p.fecha >= hoy));
+}
+function necesitaSala(row, s) {
+  return !row.isEmpty && pasesFuturosEnSala(row, s).length > 0;
+}
+function tipNecesitaSala(row, s) {
+  return "Pase en S" + (s + 1) + ": " + pasesFuturosEnSala(row, s)
+    .map(p => (p.fecha ? fmtDiaCorto(p.fecha) : "sin fecha") + (p.hora ? " " + p.hora : "")).join(", ");
+}
+
+// Poner un pase en una sala la marca como "Falta" (azul): hay que copiar
+// la película ahí. Solo si estaba en rojo (No copiado); si ya está
+// copiando, lista o con error, no se toca.
+// Al quitar o mover el pase, si la sala seguía en azul y ya no tiene
+// ningún pase, vuelve a rojo.
+function marcarFaltaSala(row, s) {
+  if (!Array.isArray(row.proj)) row.proj = [0,0,0,0,0];
+  if (necesitaSala(row, s) && row.proj[s] === 0) row.proj[s] = 3;
+}
+function liberarSala(row, s) {
+  if (Array.isArray(row.proj) && row.proj[s] === 3 && !necesitaSala(row, s)) row.proj[s] = 0;
+}
+// Repasa las cinco salas de una película tras cambiar sus pases
+function sincronizarSalas(row, antes) {
+  SALAS.forEach(s => {
+    if (necesitaSala(row, s)) marcarFaltaSala(row, s);
+    else if (antes && antes.has(s)) liberarSala(row, s);
+  });
+}
+function salasNecesarias(row) {
+  return new Set(SALAS.filter(s => necesitaSala(row, s)));
+}
+
+// "Probada": el archivo elegido está probado. Si aún no hay elegido,
+// vale con que alguno de sus archivos lo esté.
+function estaProbada(row) {
+  const a = archivoAProyectar(row);
+  if (a && (a.nombre || "").trim()) return !!a.probado;
+  return archivosLlenos(row).some(x => x.probado);
+}
+
 // Añade un pase. Sin fecha ni sala, copia las del último pase de la
 // película (o el día que se esté viendo en el calendario, o hoy).
 function addPase(id, fecha, sala) {
@@ -3513,7 +3664,9 @@ function addPase(id, fecha, sala) {
     hora:     "",
     etiqueta: "",
   };
+  const antes = salasNecesarias(row);
   pasesDe(row).push(pase);
+  sincronizarSalas(row, antes);
   render(); scheduleSave(id);
   return pase;
 }
@@ -3539,7 +3692,9 @@ function updatePase(id, pid, campo, valor, redibujar) {
   const row  = rows.find(r => r.id === id);
   const pase = row && (row.pases || []).find(p => p.id === pid);
   if (!pase) return;
+  const antes = salasNecesarias(row);
   pase[campo] = campo === "sala" ? Number(valor) : valor;
+  if (campo === "sala" || campo === "fecha") sincronizarSalas(row, antes);
   if (redibujar) {
     if (campo === "sala") render();       // un desplegable cambia de golpe
     else renderPendiente = true;          // fecha / hora: al salir del campo
@@ -3550,7 +3705,9 @@ function updatePase(id, pid, campo, valor, redibujar) {
 function removePase(id, pid) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
+  const antes = salasNecesarias(row);
   row.pases = (row.pases || []).filter(p => p.id !== pid);
+  sincronizarSalas(row, antes);
   render(); scheduleSave(id);
 }
 
@@ -4157,6 +4314,7 @@ document.addEventListener("keydown", (e) => {
 initTheme();
 initDistribuidora();
 aplicarVista();
+aplicarOrdenAuto();
 initSupabase();
 if (supabaseUrl && supabaseKey) { setSyncStatus("syncing","Conectando…"); loadFromSheets(); }
 else                            { setSyncStatus("local","Sin conectar");  loadLocal(); }

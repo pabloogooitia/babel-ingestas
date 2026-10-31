@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas Mostra — Cines Babel · v2.3</title>
+  <title>Ingestas Mostra — Cines Babel · v2.4</title>
   <!-- Icono propio de la Mostra: mostra-icon.png, en esta misma carpeta
        (mostra/), junto al HTML. Se usa como favicon, icono de la app en iOS
        y logo de la cabecera. El ?v=1 evita que el navegador se quede con una
@@ -1577,7 +1577,7 @@
         </div>
         <div class="help-row">
           <div class="help-dot" style="background:var(--p-falta);"></div>
-          <span>Al poner un pase en una sala, si la película estaba en <strong style="color:var(--text);">rojo</strong> (No copiado) en esa sala, pasa sola a <strong style="color:var(--text);">azul</strong> (Falta): así se ve en la lista dónde hay que copiarla. Si ya estaba copiando, lista o con error, no se toca. Si quitas o mueves el pase y la sala sigue en azul sin ningún otro pase, vuelve a rojo.</span>
+          <span>Si una película tiene un pase (hoy o más adelante) en una sala donde está en <strong style="color:var(--text);">rojo</strong> (No copiado), esa sala se ve en <strong style="color:var(--text);">azul</strong> (Falta): así se ve en la lista dónde hay que copiarla. Al quitar o mover el pase, o cuando el pase ya ha pasado, vuelve a rojo sola. Si ya está copiando, lista o con error, se ve tal cual. Pulsando una sala azul pasa a amarillo (Copiando), luego a verde, y vuelve a azul mientras tenga pase.</span>
         </div>
       </div>
 
@@ -1700,7 +1700,7 @@
 
       <div class="help-credits">
         <strong>Ingestas Mostra — Cines Babel</strong><br>
-        Versión actual: <strong>v2.3</strong> · basada en Lista de Ingestas v1.18<br>
+        Versión actual: <strong>v2.4</strong> · basada en Lista de Ingestas v1.18<br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1750,7 +1750,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>Mostra v2.3 · Diseño por Pablo Goitia</footer>
+<footer>Mostra v2.4 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1783,9 +1783,10 @@
 // · v2.1: orden por próximo pase y filtros de soporte, archivo elegido y probadas.
 // · v2.2: poner un pase en una sala pone esa sala en "Falta" (azul).
 // · v2.3: botón para ordenar la lista alfabéticamente.
+// · v2.4: el azul de las salas con pase se calcula siempre (no se guarda).
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = "mostra-v2.3";
+const APP_VERSION = "mostra-v2.4";
 const TABLE       = "mostra_peliculas";
 const LS = {
   rows:   "mostra_rows",
@@ -1867,7 +1868,7 @@ function rowMatchesFilters(row) {
   if (activeFilters.estado) {
     const stateMap = { nocopiado: 0, copiando: 1, listo: 2, falta: 3, error: 4 };
     const target = stateMap[activeFilters.estado];
-    if (!(row.proj || []).some(p => p === target)) return false;
+    if (!estadosSalas(row).some(p => p === target)) return false;
   }
   if (activeFilters.elegido) {
     const a = archivoAProyectar(row);
@@ -1943,7 +1944,7 @@ function filaContiene(row, q) {
   if (FMT_STATES[row.fmt || 0].key.toLowerCase().includes(q)) return true;
   if (FMT2_STATES[row.fmt2 || 0].label.toLowerCase().includes(q)) return true;
   if (ENC_STATES[row.enc || 0].label.toLowerCase().includes(q)) return true;
-  const salaLabels = (row.proj || []).map(p => (PROJ_LABELS[p] || "").toLowerCase());
+  const salaLabels = estadosSalas(row).map(p => (PROJ_LABELS[p] || "").toLowerCase());
   if (salaLabels.some(l => l.includes(q))) return true;
   if ((row.projErr || []).some(e => (e || "").toLowerCase().includes(q))) return true;
   return false;
@@ -2219,21 +2220,6 @@ function loadLocal() {
   render();
 }
 
-// v2.2 · Una sola vez por ordenador: las películas que ya tenían pases de
-// antes ponen en "Falta" (azul) las salas de esos pases que estaban en rojo.
-// Después ya solo lo hacen los propios pases al crearlos o moverlos, para
-// no deshacer lo que alguien cambie a mano.
-function migrarFaltaPases() {
-  try { if (localStorage.getItem("mostra_falta_v22") === "1") return; } catch(e) { return; }
-  rows.forEach(r => {
-    if (r.isEmpty) return;
-    const antes = JSON.stringify(r.proj);
-    SALAS.forEach(s => marcarFaltaSala(r, s));
-    if (JSON.stringify(r.proj) !== antes) scheduleSave(r.id);
-  });
-  try { localStorage.setItem("mostra_falta_v22", "1"); } catch(e) {}
-}
-
 function saveLocal() {
   try { localStorage.setItem(LS.rows, JSON.stringify(rows)); } catch(e) {}
 }
@@ -2388,7 +2374,6 @@ async function loadFromSheets(silent) {
     rows = deduplicateRows(data.map(mapSupabaseRow));
     addEmptyRow();
     setSyncStatus("synced", "Conectado ✓");
-    migrarFaltaPases();
     render(); saveLocal();
   } catch(e) {
     if (silent) { setSyncStatus("error", "Sin conexión — reintentando"); return; }
@@ -3049,7 +3034,7 @@ function render() {
             <span class="chev">▾</span>
           </button>`}
       </td>
-      ${row.proj.map((p,i) => `
+      ${estadosSalas(row).map((p,i) => `
         <td class="sala">
           <div class="sala-cell">
             <button class="proj-btn ${PROJ_CLASSES[p]}"
@@ -3130,7 +3115,7 @@ function renderMobile() {
     const fmtBg  = fmt2.cls==="flat"?    "var(--f-flat)"    : fmt2.cls==="scope"?  "var(--f-scope)"   : fmt2.cls==="fmtotro"? "var(--f-otro)"    : "var(--f-blank)";
     const fmtCol = fmt2.cls==="flat"?    "#0a6060"          : fmt2.cls==="scope"?  "#801040"          : fmt2.cls==="fmtotro"? "#606010"          : "var(--text2)";
 
-    const salasHTML = row.proj.map((p, i) => `
+    const salasHTML = estadosSalas(row).map((p, i) => `
       <div class="card-m-sala">
         <span class="card-m-sala-name">S${i+1}</span>
         <button class="proj-btn ${PROJ_CLASSES[p]}" id="mpbtn-${row.id}-${i}"></button>
@@ -3307,7 +3292,7 @@ function attachProjListeners(btn, rowId, idx) {
   let stage     = 0;
   let cancelado = false;
   const filaOriginal   = rows.find(r => r.id === rowId);
-  const estadoOriginal = (filaOriginal && filaOriginal.proj ? filaOriginal.proj : [])[idx] || 0;
+  const estadoOriginal = filaOriginal ? estadoSala(filaOriginal, idx) : 0;
 
   function startPress(e) {
     e.preventDefault();
@@ -3373,7 +3358,13 @@ function attachProjListeners(btn, rowId, idx) {
 function cycleProj(id, idx) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
-  if (row.proj[idx] >= 3) {
+  // Se cicla sobre lo que se VE (una sala roja con pase se ve azul):
+  //   azul con pase → amarillo → verde → azul (vuelve a "falta" mientras haya pase)
+  //   sin pase:  rojo → amarillo → verde → rojo ·  azul/morado → rojo
+  const visto = estadoSala(row, idx);
+  if (visto === 3 && necesitaSala(row, idx)) {
+    row.proj[idx] = 1;
+  } else if (visto >= 3) {
     row.proj[idx] = 0;
     if (!row.projErr) row.projErr = ["","","","",""];
     row.projErr[idx] = "";
@@ -3646,24 +3637,27 @@ function tipNecesitaSala(row, s) {
     .map(p => (p.fecha ? fmtDiaCorto(p.fecha) : "sin fecha") + (p.hora ? " " + p.hora : "")).join(", ");
 }
 
-// Poner un pase en una sala la marca como "Falta" (azul): hay que copiar
-// la película ahí. Solo si estaba en rojo (No copiado); si ya está
-// copiando, lista o con error, no se toca.
-// Al quitar o mover el pase, si la sala seguía en azul y ya no tiene
-// ningún pase, vuelve a rojo.
-function marcarFaltaSala(row, s) {
-  if (!Array.isArray(row.proj)) row.proj = [0,0,0,0,0];
-  if (necesitaSala(row, s) && row.proj[s] === 0) row.proj[s] = 3;
+// ESTADO DE SALA QUE SE VE (v2.4)
+// Una sala en rojo (No copiado) donde la película tiene un pase hoy o más
+// adelante se ve en AZUL (Falta): hay que copiarla ahí. No se guarda: se
+// calcula siempre a partir de los pases, así que sale igual en todos los
+// ordenadores, aparece al poner el pase y desaparece al quitarlo, moverlo
+// o cuando el pase ya ha pasado. Si la sala está copiando, lista o con
+// error, se ve tal cual.
+function estadoSala(row, s) {
+  const p = (row.proj || [])[s] || 0;
+  return (p === 0 && necesitaSala(row, s)) ? 3 : p;
 }
+function estadosSalas(row) {
+  return SALAS.map(s => estadoSala(row, s));
+}
+// Versiones 2.2–2.3 guardaban el azul en el dato. Si se quita o mueve el
+// pase y esa sala seguía guardada en azul sin otro pase, vuelve a rojo.
 function liberarSala(row, s) {
   if (Array.isArray(row.proj) && row.proj[s] === 3 && !necesitaSala(row, s)) row.proj[s] = 0;
 }
-// Repasa las cinco salas de una película tras cambiar sus pases
 function sincronizarSalas(row, antes) {
-  SALAS.forEach(s => {
-    if (necesitaSala(row, s)) marcarFaltaSala(row, s);
-    else if (antes && antes.has(s)) liberarSala(row, s);
-  });
+  SALAS.forEach(s => { if (antes && antes.has(s) && !necesitaSala(row, s)) liberarSala(row, s); });
 }
 function salasNecesarias(row) {
   return new Set(SALAS.filter(s => necesitaSala(row, s)));
@@ -3835,7 +3829,7 @@ function estadoPase(row, pase) {
   const motivos = [];
   const s = pase.sala;
   if (!arch.probado) motivos.push("Archivo sin probar");
-  const p = (row.proj || [])[s] || 0;
+  const p = estadoSala(row, s);
   if (p !== 2) motivos.push(`${PROJ_LABELS[p]} en S${s + 1}`);
   if (!pase.hora) motivos.push("Falta la hora");
 
@@ -4228,7 +4222,7 @@ function renderCalModal() {
         <div class="cal-modal-eyebrow">Soporte: ${escHtml(sop)} · Encriptación: ${ENC_STATES[row.enc || 0].label} · Formato: ${escHtml(row.fmt2 === 3 ? (row.fmt2OtroText || "Otro") : FMT2_STATES[row.fmt2 || 0].label)}</div>
         <h2>${escHtml(row.pelicula)}</h2>
         <div class="cal-modal-salas">
-          ${row.proj.map((p, i) => `<span class="ms-sala"><i class="proj-dot ${PROJ_CLASSES[p]}"></i>S${i + 1} ${PROJ_LABELS[p]}</span>`).join("")}
+          ${estadosSalas(row).map((p, i) => `<span class="ms-sala"><i class="proj-dot ${PROJ_CLASSES[p]}"></i>S${i + 1} ${PROJ_LABELS[p]}</span>`).join("")}
         </div>
       </div>
       <button class="btn-secondary" onclick="cerrarPelicula()" title="Cerrar (Esc)">✕</button>

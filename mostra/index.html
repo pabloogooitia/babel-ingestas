@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas Mostra — Cines Babel · v2.2</title>
+  <title>Ingestas Mostra — Cines Babel · v2.3</title>
   <!-- Icono propio de la Mostra: mostra-icon.png, en esta misma carpeta
        (mostra/), junto al HTML. Se usa como favicon, icono de la app en iOS
        y logo de la cabecera. El ?v=1 evita que el navegador se quede con una
@@ -1399,8 +1399,10 @@
     </div>
     <span class="search-count" id="searchCount" style="display:none;"></span>
     <button class="btn-clear" id="clearSearch" onclick="clearSearch()" style="display:none;">✕ Limpiar</button>
-    <button class="btn-orden" id="btnOrden" onclick="toggleOrdenAuto()"
+    <button class="btn-orden" id="btnOrden" onclick="setModoOrden('pase')"
       title="Ordena la lista por el próximo pase (lo más urgente arriba). Vuelve a pulsar para el orden manual.">⇅ Por próximo pase</button>
+    <button class="btn-orden" id="btnOrdenAlfa" onclick="setModoOrden('alfa')"
+      title="Ordena la lista por título, de la A a la Z. Vuelve a pulsar para el orden manual.">A–Z Alfabético</button>
     <button class="btn-add-row" onclick="manualAddRow()">+ Añadir fila</button>
   </div>
 
@@ -1508,6 +1510,10 @@
         <div class="help-row">
           <span style="font-size:0.82rem;margin-top:1px;">⇅</span>
           <span><strong style="color:var(--text);">Por próximo pase</strong> — El botón junto a «+ Añadir fila» ordena la lista sola: primero las películas con el pase más cercano, luego las que aún no tienen pase y al final las que ya solo tienen pases pasados. Mientras está activo no se puede arrastrar; al apagarlo vuelve tu orden manual tal cual. Se recuerda en cada ordenador.</span>
+        </div>
+        <div class="help-row">
+          <span style="font-size:0.66rem;margin-top:2px;font-weight:800;color:var(--text);">A–Z</span>
+          <span><strong style="color:var(--text);">Alfabético</strong> — Ordena por título, sin distinguir mayúsculas ni tildes. Funciona igual: se activa y se apaga con el mismo botón, y no toca tu orden manual. Solo puede haber un orden activo a la vez.</span>
         </div>
       </div>
 
@@ -1694,7 +1700,7 @@
 
       <div class="help-credits">
         <strong>Ingestas Mostra — Cines Babel</strong><br>
-        Versión actual: <strong>v2.2</strong> · basada en Lista de Ingestas v1.18<br>
+        Versión actual: <strong>v2.3</strong> · basada en Lista de Ingestas v1.18<br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1744,7 +1750,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>Mostra v2.2 · Diseño por Pablo Goitia</footer>
+<footer>Mostra v2.3 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1776,9 +1782,10 @@
 //         confirmación final de cada película.
 // · v2.1: orden por próximo pase y filtros de soporte, archivo elegido y probadas.
 // · v2.2: poner un pase en una sala pone esa sala en "Falta" (azul).
+// · v2.3: botón para ordenar la lista alfabéticamente.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = "mostra-v2.2";
+const APP_VERSION = "mostra-v2.3";
 const TABLE       = "mostra_peliculas";
 const LS = {
   rows:   "mostra_rows",
@@ -2453,14 +2460,21 @@ function compararManual(a, b) {
   return (sortKey(a) - sortKey(b)) || (b.id - a.id);
 }
 
-// Orden por próximo pase (botón "⇅ Por próximo pase", se recuerda en cada
-// ordenador). No toca el orden manual: al apagarlo vuelve tal cual.
-//   1º las que tienen un pase hoy o más adelante, de la más cercana a la más lejana
-//   2º las que aún no tienen ningún pase
-//   3º las que ya solo tienen pases pasados
-// Dentro de cada grupo (y si dos pases coinciden), manda el orden manual.
-let ordenAuto = false;
-try { ordenAuto = localStorage.getItem("mostra_orden_auto") === "1"; } catch(e) {}
+// Modos de orden de la lista (se recuerda en cada ordenador; ninguno toca
+// el orden manual, que vuelve tal cual al apagarlos):
+//   "manual" → el de arrastrar (campo "orden", compartido)
+//   "pase"   → botón "⇅ Por próximo pase":
+//                1º las que tienen un pase hoy o más adelante, de la más cercana a la más lejana
+//                2º las que aún no tienen ningún pase
+//                3º las que ya solo tienen pases pasados
+//              Dentro de cada grupo (y si dos pases coinciden), manda el orden manual.
+//   "alfa"   → botón "A–Z": por título, sin distinguir mayúsculas ni tildes.
+let modoOrden = "manual";
+try {
+  const m = localStorage.getItem("mostra_orden");
+  if (m === "pase" || m === "alfa") modoOrden = m;
+  else if (localStorage.getItem("mostra_orden_auto") === "1") modoOrden = "pase";   // ajuste de la v2.1
+} catch(e) {}
 
 function claveProximidad(row) {
   const p = proximoPase(row);
@@ -2471,26 +2485,38 @@ function compararProximidad(a, b) {
   const ka = claveProximidad(a), kb = claveProximidad(b);
   return (ka.grupo - kb.grupo) || ka.cuando.localeCompare(kb.cuando) || compararManual(a, b);
 }
-
-function toggleOrdenAuto() {
-  ordenAuto = !ordenAuto;
-  try { localStorage.setItem("mostra_orden_auto", ordenAuto ? "1" : "0"); } catch(e) {}
-  aplicarOrdenAuto();
-  render();
-  showToast(ordenAuto
-    ? "⇅ Lista ordenada por el próximo pase"
-    : "Orden manual (el de arrastrar)");
+function compararAlfabetico(a, b) {
+  return (a.pelicula || "").trim().localeCompare((b.pelicula || "").trim(), "es", { sensitivity: "base", numeric: true })
+    || compararManual(a, b);
 }
-function aplicarOrdenAuto() {
-  document.body.classList.toggle("orden-auto", ordenAuto);
-  const btn = document.getElementById("btnOrden");
-  if (btn) btn.classList.toggle("active", ordenAuto);
+
+// Pulsar un botón activa su orden; pulsarlo otra vez vuelve al manual.
+function setModoOrden(modo) {
+  modoOrden = modoOrden === modo ? "manual" : modo;
+  try {
+    localStorage.setItem("mostra_orden", modoOrden);
+    localStorage.removeItem("mostra_orden_auto");
+  } catch(e) {}
+  aplicarModoOrden();
+  render();
+  showToast(modoOrden === "pase" ? "⇅ Lista ordenada por el próximo pase"
+          : modoOrden === "alfa" ? "A–Z Lista en orden alfabético"
+          : "Orden manual (el de arrastrar)");
+}
+function aplicarModoOrden() {
+  document.body.classList.toggle("orden-auto", modoOrden !== "manual");
+  const bp = document.getElementById("btnOrden");
+  const ba = document.getElementById("btnOrdenAlfa");
+  if (bp) bp.classList.toggle("active", modoOrden === "pase");
+  if (ba) ba.classList.toggle("active", modoOrden === "alfa");
 }
 
 function getSorted() {
   const empty  = rows.filter(r => r.isEmpty);
-  const filled = rows.filter(r => !r.isEmpty)
-    .sort(ordenAuto ? compararProximidad : compararManual);
+  const comparar = modoOrden === "pase" ? compararProximidad
+                 : modoOrden === "alfa" ? compararAlfabetico
+                 : compararManual;
+  const filled = rows.filter(r => !r.isEmpty).sort(comparar);
   return [...empty, ...filled];
 }
 
@@ -2725,7 +2751,7 @@ function esVacio(el) {
 }
 
 function startDrag(e, id) {
-  if (drag || ordenAuto) return;
+  if (drag || modoOrden !== "manual") return;
   if (e.pointerType === "mouse" && e.button !== 0) return;
   e.preventDefault();
   e.stopPropagation();
@@ -4314,7 +4340,7 @@ document.addEventListener("keydown", (e) => {
 initTheme();
 initDistribuidora();
 aplicarVista();
-aplicarOrdenAuto();
+aplicarModoOrden();
 initSupabase();
 if (supabaseUrl && supabaseKey) { setSyncStatus("syncing","Conectando…"); loadFromSheets(); }
 else                            { setSyncStatus("local","Sin conectar");  loadLocal(); }

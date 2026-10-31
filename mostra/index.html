@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas Mostra — Cines Babel · v2.7</title>
+  <title>Ingestas Mostra — Cines Babel · v2.8</title>
   <!-- Icono propio de la Mostra: mostra-icon.png, en esta misma carpeta
        (mostra/), junto al HTML. Se usa como favicon, icono de la app en iOS
        y logo de la cabecera. El ?v=1 evita que el navegador se quede con una
@@ -1140,31 +1140,42 @@
     .filter-chip.fc-probada   { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
 
     /* Sección de la Mostra (v2.7) */
-    .sec-select {
-      -webkit-appearance: none; appearance: none;
-      width: 104px; height: 24px; border: none; border-radius: 6px; cursor: pointer;
-      padding: 0 6px; text-align: center; text-align-last: center;
-      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.56rem; font-weight: 800;
-      letter-spacing: 0.04em; text-transform: uppercase;
-      background: var(--s-blank); color: var(--text3); outline: none;
-      transition: box-shadow 0.15s;
+    /* Lista: punto de color + nombre en gris, sin fondo */
+    .sec-wrap { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; }
+    .sec-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .sec-wrap.vacia .sec-dot { display: none; }
+    .sec-dot.oficial  { background: #6366f1; }
+    .sec-dot.cabina   { background: #14b8a6; }
+    .sec-dot.xaloc    { background: #f97316; }
+    .sec-dot.carta    { background: #94a3b8; }
+    .sec-dot.mostreta { background: #84cc16; }
+    .sec-dot.otra     { background: var(--text3); }
+    .sec-sel {
+      -webkit-appearance: none; appearance: none; min-width: 0; max-width: 112px;
+      border: 1px solid transparent; border-radius: 6px; background: transparent;
+      padding: 2px 4px; margin-left: -4px; cursor: pointer; outline: none;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 500;
+      color: var(--text2); text-overflow: ellipsis;
+      transition: border-color 0.15s, background 0.15s;
     }
-    .sec-select:hover, .sec-select:focus { box-shadow: 0 0 0 2px var(--accent-dim), 0 0 0 1px var(--accent); }
-    .sec-select option { text-transform: none; font-weight: 600; color: var(--text); background: var(--surface); text-align: left; }
-    .sec-select.oficial,  .cal-chip.sec.oficial,  .filter-chip.fc-sec.oficial  { background: #e0e7ff; color: #3730a3; }
-    .sec-select.cabina,   .cal-chip.sec.cabina,   .filter-chip.fc-sec.cabina   { background: #ccfbf1; color: #115e59; }
-    .sec-select.xaloc,    .cal-chip.sec.xaloc,    .filter-chip.fc-sec.xaloc    { background: #ffedd5; color: #9a3412; }
-    .sec-select.carta,    .cal-chip.sec.carta,    .filter-chip.fc-sec.carta    { background: #e2e8f0; color: #334155; }
-    .sec-select.mostreta, .cal-chip.sec.mostreta, .filter-chip.fc-sec.mostreta { background: #ecfccb; color: #3f6212; }
-    .sec-select.otra,     .cal-chip.sec.otra                                   { background: var(--surface2); color: var(--text2); }
+    .sec-wrap.vacia .sec-sel { color: var(--text3); font-size: 0.68rem; }
+    .sec-sel:hover, .sec-sel:focus { border-color: var(--border); background: var(--surface2); }
+    .sec-sel option { color: var(--text); background: var(--surface); }
+
+    /* Calendario y filtros: chapita de color (como hasta ahora) */
+    .cal-chip.sec.oficial,  .filter-chip.fc-sec.oficial  { background: #e0e7ff; color: #3730a3; }
+    .cal-chip.sec.cabina,   .filter-chip.fc-sec.cabina   { background: #ccfbf1; color: #115e59; }
+    .cal-chip.sec.xaloc,    .filter-chip.fc-sec.xaloc    { background: #ffedd5; color: #9a3412; }
+    .cal-chip.sec.carta,    .filter-chip.fc-sec.carta    { background: #e2e8f0; color: #334155; }
+    .cal-chip.sec.mostreta, .filter-chip.fc-sec.mostreta { background: #ecfccb; color: #3f6212; }
+    .cal-chip.sec.otra                                   { background: var(--surface2); color: var(--text2); }
     .filter-chip.fc-sec { border-color: transparent; }
     .filter-chip.fc-sec.sinsec { background: var(--s-blank); color: var(--text2); }
-    body.dark .sec-select.oficial,  body.dark .cal-chip.sec.oficial,  body.dark .filter-chip.fc-sec.oficial  { background: rgba(99,102,241,0.22);  color: #c7d2fe; }
-    body.dark .sec-select.cabina,   body.dark .cal-chip.sec.cabina,   body.dark .filter-chip.fc-sec.cabina   { background: rgba(20,184,166,0.20);  color: #5eead4; }
-    body.dark .sec-select.xaloc,    body.dark .cal-chip.sec.xaloc,    body.dark .filter-chip.fc-sec.xaloc    { background: rgba(249,115,22,0.20);  color: #fdba74; }
-    body.dark .sec-select.carta,    body.dark .cal-chip.sec.carta,    body.dark .filter-chip.fc-sec.carta    { background: rgba(148,163,184,0.20); color: #cbd5e1; }
-    body.dark .sec-select.mostreta, body.dark .cal-chip.sec.mostreta, body.dark .filter-chip.fc-sec.mostreta { background: rgba(132,204,22,0.18);  color: #bef264; }
-    .card-m-badges .sec-select { width: auto; min-width: 84px; }
+    body.dark .cal-chip.sec.oficial,  body.dark .filter-chip.fc-sec.oficial  { background: rgba(99,102,241,0.22);  color: #c7d2fe; }
+    body.dark .cal-chip.sec.cabina,   body.dark .filter-chip.fc-sec.cabina   { background: rgba(20,184,166,0.20);  color: #5eead4; }
+    body.dark .cal-chip.sec.xaloc,    body.dark .filter-chip.fc-sec.xaloc    { background: rgba(249,115,22,0.20);  color: #fdba74; }
+    body.dark .cal-chip.sec.carta,    body.dark .filter-chip.fc-sec.carta    { background: rgba(148,163,184,0.20); color: #cbd5e1; }
+    body.dark .cal-chip.sec.mostreta, body.dark .filter-chip.fc-sec.mostreta { background: rgba(132,204,22,0.18);  color: #bef264; }
 
     /* Indicadores en la fila de la lista */
     .title-wrap { display: flex; align-items: center; gap: 6px; }
@@ -1502,9 +1513,9 @@
           <th style="width:18px"></th>
           <th class="center" style="width:66px">Soporte</th>
           <th>Película</th>
-          <th class="center" style="width:112px">Sección</th>
           <th class="center" style="width:66px">Encriptación</th>
           <th class="center" style="width:66px">Formato</th>
+          <th style="width:128px">Sección</th>
           <th style="width:130px">Notas</th>
           <th style="width:150px" class="col-distri">Distribuidora</th>
           <th style="width:140px">Archivos</th>
@@ -1661,7 +1672,7 @@
         </div>
         <div class="help-row" style="margin-top:10px;">
           <span class="help-badge" style="background:#e0e7ff;color:#3730a3;">Sec.</span>
-          <span><strong style="color:var(--text);">Sección</strong> — Sección de la Mostra a la que pertenece: Sección Oficial, La Cabina, Xaloc, Carta Blanca, Mostreta u Otra. Cada una tiene su color, sale también en los pases del calendario y se puede filtrar con los botones de la barra.</span>
+          <span><strong style="color:var(--text);">Sección</strong> — Sección de la Mostra a la que pertenece: Sección Oficial, La Cabina, Xaloc, Carta Blanca, Mostreta u Otra. En la lista se ve discreta: un puntito de su color y el nombre en gris (pulsa sobre él para cambiarla). En el calendario sale como chapita de color en cada pase. Se puede filtrar con los botones de la barra.</span>
         </div>
         <div class="help-row" style="margin-top:10px;">
           <span style="font-size:0.82rem;margin-top:1px;">🎬</span>
@@ -1759,7 +1770,7 @@
 
       <div class="help-credits">
         <strong>Ingestas Mostra — Cines Babel</strong><br>
-        Versión actual: <strong>v2.7</strong> · basada en Lista de Ingestas v1.18<br>
+        Versión actual: <strong>v2.8</strong> · basada en Lista de Ingestas v1.18<br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1821,7 +1832,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>Mostra v2.7 · Diseño por Pablo Goitia</footer>
+<footer>Mostra v2.8 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1858,9 +1869,10 @@
 // · v2.5: presentaciones y coloquios muy visibles en el calendario.
 // · v2.6: franja del acto en rosa sólido y sin emojis.
 // · v2.7: sección de la Mostra de cada película (columna, filtros y calendario).
+// · v2.8: columna Sección tras Formato y con un estilo discreto en la lista.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = "mostra-v2.7";
+const APP_VERSION = "mostra-v2.8";
 const TABLE       = "mostra_peliculas";
 const LS = {
   rows:   "mostra_rows",
@@ -3068,7 +3080,6 @@ function render() {
         </div>
         ${row.isEmpty || !(row.confirmada || proximoPase(row)) ? "" : `<div class="title-sub">${confBadgeHTML(row)}${proxPaseHTML(row)}</div>`}
       </td>
-      <td class="center">${row.isEmpty ? "" : seccionSelectHTML(row)}</td>
       <td class="center">
         <div class="enc-btn ${enc.cls}"
           onclick="cycleEnc(${row.id})"
@@ -3085,6 +3096,7 @@ function render() {
           oninput="updateFmt2OtroText(${row.id},this.value)"
           onclick="event.stopPropagation()"/>
       </td>
+      <td class="sec-cell">${row.isEmpty ? "" : seccionSelectHTML(row)}</td>
       <td>
         <input class="notas-input ${row.notas?'has-text':''}"
           type="text" placeholder="notas…"
@@ -3639,7 +3651,8 @@ function manualAddRow() {
 // SECCIÓN DE LA MOSTRA (v2.7)
 // Se guarda el nombre tal cual ("Xaloc", "Carta Blanca"…) en "categoria".
 // Para añadir una sección nueva basta con sumarla a esta lista (y darle
-// colores en el CSS, ".sec-select.<clase>"; si no, sale en gris).
+// colores en el CSS: ".sec-dot.<clase>" para el punto de la lista y
+// ".cal-chip.sec.<clase>" para la chapita del calendario; si no, sale en gris).
 // ═══════════════════════════════════════════════════════════════════════════
 
 const SECCIONES = [
@@ -3658,11 +3671,15 @@ function seccionSelectHTML(row) {
   const v = row.categoria || "";
   const nombres = SECCIONES.map(s => s.nombre);
   if (v && !nombres.includes(v)) nombres.push(v);
-  return `<select class="sec-select ${claseSeccion(v)}" title="Sección de la Mostra"
+  // En la lista va discreta: un puntito del color de la sección y el nombre
+  // en gris, sin fondo. (En el calendario se mantiene la chapita de color.)
+  return `<span class="sec-wrap ${v ? "" : "vacia"}">
+    <i class="sec-dot ${claseSeccion(v)}"></i>
+    <select class="sec-sel" title="Sección de la Mostra"
       onchange="setCategoria(${row.id}, this.value)">
-      <option value="" ${v ? "" : "selected"}>— sección</option>
+      <option value="" ${v ? "" : "selected"}>sección…</option>
       ${nombres.map(n => `<option value="${escHtml(n)}" ${n === v ? "selected" : ""}>${escHtml(n)}</option>`).join("")}
-    </select>`;
+    </select></span>`;
 }
 function setCategoria(id, valor) {
   const row = rows.find(r => r.id === id);

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas Mostra — Cines Babel · v2.9</title>
+  <title>Ingestas Mostra — Cines Babel · v2.11</title>
   <!-- Icono propio de la Mostra: mostra-icon.png, en esta misma carpeta
        (mostra/), junto al HTML. Se usa como favicon, icono de la app en iOS
        y logo de la cabecera. El ?v=1 evita que el navegador se quede con una
@@ -881,6 +881,7 @@
     .dot.conf, .dot.ok { background: var(--ok-line); }
     .dot.warn { background: var(--warn-line); }
     .dot.bad  { background: var(--bad-line); }
+    .dot.err  { background: var(--p-err); }
 
     /* ── Selector Lista / Calendario ── */
     .vista-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
@@ -904,6 +905,7 @@
     .res-pill.conf, .res-pill.ok { color: var(--ok);   background: var(--ok-bg);   border-color: transparent; }
     .res-pill.warn               { color: var(--warn); background: var(--warn-bg); border-color: transparent; }
     .res-pill.bad                { color: var(--bad);  background: var(--bad-bg);  border-color: transparent; }
+    .res-pill.err                { color: #fff; background: var(--p-err); border-color: transparent; }
 
     #vistaCalendario { display: none; }
     body.vista-cal #vistaLista { display: none; }
@@ -957,6 +959,8 @@
     .cal-pase.ok   { border-left-color: var(--ok-line); }
     .cal-pase.warn { border-left-color: var(--warn-line); }
     .cal-pase.bad  { border-left-color: var(--bad-line); }
+    .cal-pase.err  { border-left-color: var(--p-err); border-color: rgba(162,89,255,0.55); background: rgba(162,89,255,0.10); }
+    body.dark .cal-pase.err { background: rgba(124,58,237,0.20); border-color: rgba(167,139,250,0.45); }
     .cal-pase-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
     .cal-hora { font-size: 0.82rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
     .cal-hora.vacia { color: var(--text3); }
@@ -1003,6 +1007,8 @@
     .cal-pase.conf .cal-estado, .cal-pase.ok .cal-estado { color: var(--ok); }
     .cal-pase.warn .cal-estado { color: var(--warn); }
     .cal-pase.bad  .cal-estado { color: var(--bad); }
+    .cal-pase.err  .cal-estado { color: #7c3aed; font-weight: 700; }
+    body.dark .cal-pase.err .cal-estado { color: #c4b5fd; }
     .cal-add {
       -webkit-appearance: none; appearance: none; width: 100%;
       border: 1.5px dashed var(--border); background: transparent; border-radius: 8px;
@@ -1081,6 +1087,7 @@
     .pase-dot.conf, .pase-dot.ok { background: var(--ok-line); }
     .pase-dot.warn { background: var(--warn-line); }
     .pase-dot.bad  { background: var(--bad-line); }
+    .pase-dot.err  { background: var(--p-err); }
     .pase-cal {
       background: transparent; border: none; color: var(--text3); cursor: pointer;
       font-size: 0.8rem; padding: 3px 4px; border-radius: 6px; flex-shrink: 0;
@@ -1143,6 +1150,10 @@
     body.orden-auto .drag-handle { visibility: hidden; }
 
     /* Filtros nuevos (v2.1) */
+    .chips-discos { display: contents; }
+    .filter-chip.fc-disco { background: var(--s-otro); color: #804a10; border-color: var(--s-otro); text-transform: uppercase; }
+    body.dark .filter-chip.fc-disco { color: #ffcc80; }
+    .fc-n { margin-left: 5px; font-weight: 600; opacity: 0.6; }
     .filter-chip.fc-sinsop    { background: var(--s-blank); color: var(--text2); border-color: var(--s-blank); }
     .filter-chip.fc-elegido   { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
     .filter-chip.fc-noelegido,
@@ -1474,9 +1485,9 @@
 
   <div class="filter-bar">
     <div class="filter-chip fc-sinsop" onclick="toggleFilter('soporte','blank',this)" title="Soporte sin indicar (—): no se sabe en qué disco está">Sin soporte</div>
-    <div class="filter-chip fc-fisico" onclick="toggleFilter('soporte','fisico',this)">Físico</div>
     <div class="filter-chip fc-remoto" onclick="toggleFilter('soporte','remoto',this)">Remoto</div>
-    <div class="filter-chip fc-sop-otro" onclick="toggleFilter('soporte','otro',this)">Otro</div>
+    <div class="filter-chip fc-sop-otro" onclick="toggleFilter('soporte','otro-sin',this)" title="Soporte «Otro» sin nombre escrito">Otro</div>
+    <span id="chipsDiscos" class="chips-discos"></span>
     <div class="filter-sep"></div>
     <div class="filter-chip fc-libre" onclick="toggleFilter('enc','libre',this)">Libre</div>
     <div class="filter-chip fc-kdm"   onclick="toggleFilter('enc','kdm',this)">KDMs</div>
@@ -1650,6 +1661,10 @@
           <span><strong style="color:var(--text);">Rojo</strong> — No hay archivo elegido para proyectar.</span>
         </div>
         <div class="help-row">
+          <div class="help-dot" style="background:var(--p-err);"></div>
+          <span><strong style="color:var(--text);">Morado</strong> — La película tiene alguna sala marcada en Error. Todos sus pases salen en morado, con la sala y la nota del error, porque hay un problema con el archivo que hay que mirar antes que nada.</span>
+        </div>
+        <div class="help-row">
           <span style="font-size:0.82rem;margin-top:1px;">💡</span>
           <span>Todo se comprueba para <strong style="color:var(--text);">la sala del pase</strong>: su estado S1–S5 y su KDM. Para saber si la KDM aguanta hasta el final, se cuentan 3 horas desde el inicio del pase.</span>
         </div>
@@ -1755,7 +1770,7 @@
         </div>
         <div class="help-row" style="margin-top:10px;">
           <span style="font-size:0.82rem;margin-top:1px;">🔘</span>
-          <span><strong style="color:var(--text);">Filtros</strong> — Además de soporte, encriptación, formato, estado y sala: <strong style="color:var(--text);">Sin soporte</strong> (no se sabe en qué disco está), <strong style="color:var(--text);">Confirmadas / Sin confirmar</strong>, <strong style="color:var(--text);">▶ Archivo elegido / Sin archivo elegido</strong> y <strong style="color:var(--text);">✓ Probadas / No probadas</strong> (cuenta el archivo elegido; si aún no hay, cualquiera de sus archivos). Se pueden combinar.</span>
+          <span><strong style="color:var(--text);">Filtros</strong> — Los de sala (S1–S5) muestran las películas que en esa sala están en amarillo (Copiando), verde (Listo), azul (Falta, también cuando lo pone un pase) o morado (Error); solo se quedan fuera las que están en rojo. Los de <strong style="color:var(--text);">disco</strong> salen solos: uno por cada nombre escrito en Soporte «Otro», con el número de películas que tiene; si dos se escriben igual salvo mayúsculas o espacios, se agrupan en uno. El botón <strong style="color:var(--text);">Otro</strong> muestra las que tienen soporte Otro sin nombre escrito. Además de soporte, encriptación, formato, estado y sala: <strong style="color:var(--text);">Sin soporte</strong> (no se sabe en qué disco está), <strong style="color:var(--text);">Confirmadas / Sin confirmar</strong>, <strong style="color:var(--text);">▶ Archivo elegido / Sin archivo elegido</strong> y <strong style="color:var(--text);">✓ Probadas / No probadas</strong> (cuenta el archivo elegido; si aún no hay, cualquiera de sus archivos). Se pueden combinar.</span>
         </div>
         <div class="help-row" style="margin-top:10px;">
           <span style="font-size:0.82rem;margin-top:1px;">⚙</span>
@@ -1790,7 +1805,7 @@
 
       <div class="help-credits">
         <strong>Ingestas Mostra — Cines Babel</strong><br>
-        Versión actual: <strong>v2.9</strong> · basada en Lista de Ingestas v1.18<br>
+        Versión actual: <strong>v2.11</strong> · basada en Lista de Ingestas v1.18<br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1852,7 +1867,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>Mostra v2.9 · Diseño por Pablo Goitia</footer>
+<footer>Mostra v2.11 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1891,9 +1906,14 @@
 // · v2.7: sección de la Mostra de cada película (columna, filtros y calendario).
 // · v2.8: columna Sección tras Formato y con un estilo discreto en la lista.
 // · v2.9: deshacer y rehacer (Ctrl+Z / ⌘Z) de cualquier cambio.
+// · v2.10: el filtro por sala incluye las salas en azul; en el calendario,
+//          las películas con una sala en Error salen en morado.
+// · v2.11: filtros de disco automáticos (nombres de Soporte "Otro"), sin el
+//          botón Físico ("Otro" queda para las que no tienen nombre); el
+//          filtro por sala incluye también el morado.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = "mostra-v2.9";
+const APP_VERSION = "mostra-v2.11";
 const TABLE       = "mostra_peliculas";
 const LS = {
   rows:   "mostra_rows",
@@ -1918,9 +1938,60 @@ function initTheme() {
 // FILTROS POR BOTÓN
 // ═══════════════════════════════════════════════════════════════════════════
 
-const activeFilters = { soporte: null, enc: null, fmt: null, estado: null, conf: null, elegido: null, prueba: null, cat: null, sala: new Set() };
+const activeFilters = { soporte: null, enc: null, fmt: null, estado: null, conf: null, elegido: null, prueba: null, cat: null, disco: null, sala: new Set() };
+
+// ── FILTROS DE DISCO (v2.11) ──
+// Un botón por cada nombre escrito en Soporte "Otro" (el disco duro). Se
+// generan solos a partir de la lista: no hay nombres fijos en el código.
+// Los que se escriben igual salvo mayúsculas o espacios ("babel 11",
+// "BABEL 11") se agrupan en uno.
+function claveDisco(t) {
+  return String(t || "").trim().replace(/\s+/g, " ").toLowerCase();
+}
+function discosEnUso() {
+  const grupos = new Map();   // clave → { clave, nombres: Map(nombre→veces), n }
+  rows.forEach(r => {
+    if (r.isEmpty || r.fmt !== 3) return;
+    const k = claveDisco(r.otroText);
+    if (!k) return;
+    const nombre = String(r.otroText).trim().replace(/\s+/g, " ");
+    const g = grupos.get(k) || { clave: k, nombres: new Map(), n: 0 };
+    g.nombres.set(nombre, (g.nombres.get(nombre) || 0) + 1);
+    g.n++;
+    grupos.set(k, g);
+  });
+  // Etiqueta: la forma más usada de escribirlo
+  return [...grupos.values()].map(g => ({
+    clave: g.clave, n: g.n,
+    nombre: [...g.nombres.entries()].sort((a, b) => b[1] - a[1])[0][0],
+  })).sort((a, b) => a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base", numeric: true }));
+}
+function renderChipsDiscos() {
+  const cont = document.getElementById("chipsDiscos");
+  if (!cont) return;
+  const discos = discosEnUso();
+  if (activeFilters.disco && !discos.some(d => d.clave === activeFilters.disco)) activeFilters.disco = null;
+  cont.innerHTML = discos.map((d, i) => `
+    <div class="filter-chip fc-disco ${activeFilters.disco === d.clave ? "active" : ""}"
+      data-i="${i}" onclick="toggleDisco(this)" title="Películas en «${escHtml(d.nombre)}»">
+      ${escHtml(d.nombre)}<span class="fc-n">${d.n}</span></div>`).join("");
+  cont._discos = discos;
+}
+function toggleDisco(el) {
+  const d = (document.getElementById("chipsDiscos")._discos || [])[Number(el.dataset.i)];
+  if (!d) return;
+  activeFilters.disco = activeFilters.disco === d.clave ? null : d.clave;
+  // Un disco y un tipo de soporte no pueden coincidir: se apaga el de soporte
+  if (activeFilters.disco && activeFilters.soporte) {
+    activeFilters.soporte = null;
+    document.querySelectorAll(`.filter-chip[onclick*="'soporte',"]`).forEach(c => c.classList.remove("active"));
+  }
+  updateSearchCount();
+  render();
+}
 
 function toggleFilter(group, value, el) {
+  if (group === "soporte") activeFilters.disco = null;   // ver toggleDisco
   if (group === 'sala') {
     if (activeFilters.sala.has(value)) {
       activeFilters.sala.delete(value);
@@ -1963,8 +2034,15 @@ function initDistribuidora() {
 }
 
 function rowMatchesFilters(row) {
-  if (activeFilters.soporte) {
+  if (activeFilters.soporte === "otro-sin") {
+    // "Otro" a secas: las que tienen soporte Otro pero sin nombre escrito
+    // (las que tienen nombre salen en su botón de disco)
+    if (row.fmt !== 3 || claveDisco(row.otroText)) return false;
+  } else if (activeFilters.soporte) {
     if (FMT_STATES[row.fmt || 0].key !== activeFilters.soporte) return false;
+  }
+  if (activeFilters.disco) {
+    if (row.fmt !== 3 || claveDisco(row.otroText) !== activeFilters.disco) return false;
   }
   if (activeFilters.enc) {
     if (ENC_STATES[row.enc || 0].key !== activeFilters.enc) return false;
@@ -1993,8 +2071,10 @@ function rowMatchesFilters(row) {
   if (activeFilters.conf === "no" &&  row.confirmada) return false;
   if (activeFilters.sala.size > 0) {
     for (const idx of activeFilters.sala) {
-      const estado = (row.proj || [])[parseInt(idx)];
-      if (estado !== 1 && estado !== 2) return false;
+      // Copiando (amarillo), Listo (verde), Falta (azul, también el de los
+      // pases) o Error (morado). Solo se quedan fuera las que están en rojo.
+      const estado = estadoSala(row, parseInt(idx));
+      if (estado === 0) return false;
     }
   }
   return true;
@@ -3347,6 +3427,7 @@ function render() {
   document.getElementById("counter").textContent =
     n === 0 ? "0 películas" : `${n} película${n !== 1 ? "s" : ""}`;
   renderMobile();
+  renderChipsDiscos();
   renderCalendario();
   renderCalModal();
 }
@@ -4131,18 +4212,30 @@ function toggleConfirmada(id) {
 //   "conf" → todo en orden y confirmada
 // Todo se comprueba para LA SALA DEL PASE: su estado S1–S5 y su KDM.
 
-const NIVEL_PESO = { conf: 0, ok: 1, warn: 2, bad: 3 };
+const NIVEL_PESO = { conf: 0, ok: 1, warn: 2, bad: 3, err: 4 };
+
+// Salas marcadas en Error (morado), con su nota: "Error en S3: no abre"
+function erroresSalas(row) {
+  return SALAS.filter(s => estadoSala(row, s) === 4).map(s => {
+    const nota = ((row.projErr || [])[s] || "").trim();
+    return `Error en S${s + 1}${nota ? ": " + nota : ""}`;
+  });
+}
 
 function estadoPase(row, pase) {
+  // Si la película tiene alguna sala en Error, todos sus pases salen en
+  // morado: hay un problema con el archivo que hay que mirar antes que nada.
+  const errores = erroresSalas(row);
   const arch = archivoAProyectar(row);
   if (!arch || !(arch.nombre || "").trim()) {
+    if (errores.length) return { nivel: "err", motivos: [...errores, "Sin archivo elegido"] };
     return { nivel: "bad", motivos: ["Sin archivo elegido"] };
   }
   const motivos = [];
   const s = pase.sala;
   if (!arch.probado) motivos.push("Archivo sin probar");
   const p = estadoSala(row, s);
-  if (p !== 2) motivos.push(`${PROJ_LABELS[p]} en S${s + 1}`);
+  if (p !== 2 && p !== 4) motivos.push(`${PROJ_LABELS[p]} en S${s + 1}`);
   if (!pase.hora) motivos.push("Falta la hora");
 
   const enc = row.enc || 0;
@@ -4164,6 +4257,7 @@ function estadoPase(row, pase) {
   if (row.confirmada && row.confirmada.archivo && row.confirmada.archivo !== arch.nombre) {
     motivos.push("Confirmada con otro archivo");
   }
+  if (errores.length) return { nivel: "err", motivos: [...errores, ...motivos] };
   if (motivos.length) return { nivel: "warn", motivos };
   return { nivel: row.confirmada ? "conf" : "ok", motivos: [] };
 }
@@ -4379,7 +4473,7 @@ function pasesDelDia(fecha) {
   return out.sort((a, b) => (a.pase.hora || "99:99").localeCompare(b.pase.hora || "99:99"));
 }
 function contarNiveles(lista) {
-  const c = { conf: 0, ok: 0, warn: 0, bad: 0 };
+  const c = { conf: 0, ok: 0, warn: 0, bad: 0, err: 0 };
   lista.forEach(x => c[x.est.nivel]++);
   return c;
 }
@@ -4393,6 +4487,7 @@ function resumenPillsHTML(c) {
   if (c.ok)   p.push(`<span class="res-pill ok">${c.ok} en orden</span>`);
   if (c.warn) p.push(`<span class="res-pill warn">${c.warn} a medias</span>`);
   if (c.bad)  p.push(`<span class="res-pill bad">${c.bad} sin archivo</span>`);
+  if (c.err)  p.push(`<span class="res-pill err">${c.err} con error</span>`);
   return p.join("");
 }
 
@@ -4506,6 +4601,7 @@ function renderCalendario() {
       <span><i class="dot ok"></i>Todo en orden, sin confirmar</span>
       <span><i class="dot warn"></i>Falta algo</span>
       <span><i class="dot bad"></i>Sin archivo elegido</span>
+      <span><i class="dot err"></i>Error en alguna sala</span>
     </div>`;
 }
 

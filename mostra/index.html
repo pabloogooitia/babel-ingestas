@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas Mostra — Cines Babel · v2.11</title>
+  <title>Ingestas Mostra — Cines Babel · v2.12</title>
   <!-- Icono propio de la Mostra: mostra-icon.png, en esta misma carpeta
        (mostra/), junto al HTML. Se usa como favicon, icono de la app en iOS
        y logo de la cabecera. El ?v=1 evita que el navegador se quede con una
@@ -155,6 +155,12 @@
       padding: 3px 7px 2px; border-radius: 5px;
       box-shadow: 0 2px 8px rgba(232,85,63,0.4);
     }
+    .ver-badge {
+      font-size: 0.56rem; font-weight: 700; letter-spacing: 0.04em;
+      color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.18);
+      padding: 2px 6px 1px; border-radius: 5px;
+    }
+    .ver-badge:empty { display: none; }
     .header-right { display: flex; align-items: center; gap: 8px; }
     .counter {
       font-size: 0.62rem; font-weight: 700;
@@ -1401,7 +1407,7 @@
     </div>
     <div class="header-titles">
       <span class="header-eyebrow">Cines Babel · Mostra de València</span>
-      <h1>Lista de Ingestas <span class="mostra-badge">Mostra</span></h1>
+      <h1>Lista de Ingestas <span class="mostra-badge">Mostra</span><span class="ver-badge" id="verBadge"></span></h1>
     </div>
   </div>
   <div class="header-right">
@@ -1485,7 +1491,7 @@
 
   <div class="filter-bar">
     <div class="filter-chip fc-sinsop" onclick="toggleFilter('soporte','blank',this)" title="Soporte sin indicar (—): no se sabe en qué disco está">Sin soporte</div>
-    <div class="filter-chip fc-remoto" onclick="toggleFilter('soporte','remoto',this)">Remoto</div>
+    <div class="filter-chip fc-remoto" id="chipRemoto" onclick="toggleFilter('soporte','remoto',this)">Remoto</div>
     <div class="filter-chip fc-sop-otro" onclick="toggleFilter('soporte','otro-sin',this)" title="Soporte «Otro» sin nombre escrito">Otro</div>
     <span id="chipsDiscos" class="chips-discos"></span>
     <div class="filter-sep"></div>
@@ -1805,7 +1811,7 @@
 
       <div class="help-credits">
         <strong>Ingestas Mostra — Cines Babel</strong><br>
-        Versión actual: <strong>v2.11</strong> · basada en Lista de Ingestas v1.18<br>
+        Versión actual: <strong>v2.12</strong> · basada en Lista de Ingestas v1.18<br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1867,7 +1873,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>Mostra v2.11 · Diseño por Pablo Goitia</footer>
+<footer>Mostra v2.12 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1911,9 +1917,10 @@
 // · v2.11: filtros de disco automáticos (nombres de Soporte "Otro"), sin el
 //          botón Físico ("Otro" queda para las que no tienen nombre); el
 //          filtro por sala incluye también el morado.
+// · v2.12: versión en la cabecera; "Remoto" se oculta si no hay ninguna.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = "mostra-v2.11";
+const APP_VERSION = "mostra-v2.12";
 const TABLE       = "mostra_peliculas";
 const LS = {
   rows:   "mostra_rows",
@@ -1967,6 +1974,16 @@ function discosEnUso() {
   })).sort((a, b) => a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base", numeric: true }));
 }
 function renderChipsDiscos() {
+  // "Remoto" solo aparece si alguna película tiene ese soporte
+  const chipRemoto = document.getElementById("chipRemoto");
+  if (chipRemoto) {
+    const hay = rows.some(r => !r.isEmpty && r.fmt === 2);
+    chipRemoto.style.display = hay ? "" : "none";
+    if (!hay && activeFilters.soporte === "remoto") {
+      activeFilters.soporte = null;
+      chipRemoto.classList.remove("active");
+    }
+  }
   const cont = document.getElementById("chipsDiscos");
   if (!cont) return;
   const discos = discosEnUso();
@@ -4767,6 +4784,8 @@ document.addEventListener("keydown", (e) => {
 
 initTheme();
 initDistribuidora();
+// Número de versión en la cabecera (sale de APP_VERSION, no hay que tocarlo aparte)
+document.getElementById("verBadge").textContent = APP_VERSION.replace(/^mostra-/, "");
 aplicarVista();
 aplicarModoOrden();
 initSupabase();

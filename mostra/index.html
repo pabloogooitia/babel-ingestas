@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas Mostra — Cines Babel · v2.13</title>
+  <title>Ingestas Mostra — Cines Babel · v2.14</title>
   <!-- Icono propio de la Mostra: mostra-icon.png, en esta misma carpeta
        (mostra/), junto al HTML. Se usa como favicon, icono de la app en iOS
        y logo de la cabecera. El ?v=1 evita que el navegador se quede con una
@@ -56,7 +56,7 @@
       --p-ok:       #69f0ae;
       --p-falta:    #82b1ff;
       --p-err:      #a259ff;
-      --p-sobra:    #f57c00;
+      --p-sobra:    #795548;
     }
 
     body.dark {
@@ -91,7 +91,7 @@
       --p-ok:       #2e7d32;
       --p-falta:    #1565c0;
       --p-err:      #6d28d9;
-      --p-sobra:    #e65100;
+      --p-sobra:    #a1887f;
     }
 
     body {
@@ -1752,11 +1752,11 @@
         </div>
         <div class="help-row">
           <div class="help-dot" style="background:var(--p-sobra);"></div>
-          <span><strong style="color:var(--text);">Naranja</strong> — Sobra. Se pone solo, no se puede marcar a mano: la película está en verde en esa sala, ya se ha proyectado ahí y no le quedan más pases en ella. Avisa de que se puede borrar de ese servidor para hacer sitio. Cuando la borres, pulsa el círculo y pasa a rojo. Si le añades otro pase en esa sala, vuelve a verde.</span>
+          <span><strong style="color:var(--text);">Marrón</strong> — Sobra. Se pone solo, no se puede marcar a mano: la película está en verde en esa sala, ya se ha proyectado ahí y no le quedan más pases en ella. Avisa de que se puede borrar de ese servidor para hacer sitio. Cuando la borres, pulsa el círculo y pasa a rojo. Si le añades otro pase en esa sala, vuelve a verde.</span>
         </div>
         <div class="help-row" style="margin-top:8px;">
           <span style="font-size:0.82rem;margin-top:1px;">💡</span>
-          <span>Un clic corto sobre morado o naranja devuelve la sala a rojo.</span>
+          <span>Un clic corto sobre morado o marrón devuelve la sala a rojo.</span>
         </div>
       </div>
 
@@ -1821,7 +1821,7 @@
 
       <div class="help-credits">
         <strong>Ingestas Mostra — Cines Babel</strong><br>
-        Versión actual: <strong>v2.13</strong> · basada en Lista de Ingestas v1.18<br>
+        Versión actual: <strong>v2.14</strong> · basada en Lista de Ingestas v1.18<br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1883,7 +1883,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>Mostra v2.13 · Diseño por Pablo Goitia</footer>
+<footer>Mostra v2.14 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1928,10 +1928,11 @@
 //          botón Físico ("Otro" queda para las que no tienen nombre); el
 //          filtro por sala incluye también el morado.
 // · v2.12: versión en la cabecera; "Remoto" se oculta si no hay ninguna.
-// · v2.13: estado automático "Sobra" (naranja): ya proyectada, se puede borrar.
+// · v2.13: estado automático "Sobra": ya proyectada, se puede borrar.
+// · v2.14: "Sobra" pasa de naranja a marrón, que se distingue mejor.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = "mostra-v2.13";
+const APP_VERSION = "mostra-v2.14";
 const TABLE       = "mostra_peliculas";
 const LS = {
   rows:   "mostra_rows",
@@ -3738,7 +3739,7 @@ function cycleProj(id, idx) {
   // Se cicla sobre lo que se VE (una sala roja con pase se ve azul):
   //   azul con pase → amarillo → verde → azul (vuelve a "falta" mientras haya pase)
   //   sin pase:  rojo → amarillo → verde → rojo ·  azul/morado → rojo
-  //   naranja (Sobra) → rojo: ya se ha borrado del servidor
+  //   marrón (Sobra) → rojo: ya se ha borrado del servidor
   const visto = estadoSala(row, idx);
   if (visto === 3 && necesitaSala(row, idx)) {
     row.proj[idx] = 1;
@@ -4069,11 +4070,11 @@ function tipNecesitaSala(row, s) {
 function estadoSala(row, s) {
   const p = (row.proj || [])[s] || 0;
   if (p === 0 && necesitaSala(row, s)) return 3;   // azul: Falta
-  if (p === 2 && sobraSala(row, s))    return 5;   // naranja: Sobra
+  if (p === 2 && sobraSala(row, s))    return 5;   // marrón: Sobra
   return p;
 }
 
-// SOBRA (v2.13) · naranja, también automático y tampoco se guarda.
+// SOBRA (v2.13) · marrón, también automático y tampoco se guarda.
 // La película está copiada en esa sala (verde) y ya se ha proyectado ahí:
 // tenía pases en esa sala, todos han terminado y no le queda ninguno.
 // Avisa de que se puede borrar del servidor para hacer sitio. Se da por

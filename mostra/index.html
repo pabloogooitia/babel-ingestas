@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas Mostra — Cines Babel · v2.16</title>
+  <title>Ingestas Mostra — Cines Babel · v2.17</title>
   <!-- Icono propio de la Mostra: mostra-icon.png, en esta misma carpeta
        (mostra/), junto al HTML. Se usa como favicon, icono de la app en iOS
        y logo de la cabecera. El ?v=1 evita que el navegador se quede con una
@@ -1798,7 +1798,7 @@
         </div>
         <div class="help-row">
           <div class="help-dot" style="background:var(--p-sobra);"></div>
-          <span><strong style="color:var(--text);">Marrón</strong> — Sobra. Se pone solo, no se puede marcar a mano: la película está en verde en esa sala, ya se ha proyectado ahí y no le quedan más pases en ella. Avisa de que se puede borrar de ese servidor para hacer sitio. Cuando la borres, pulsa el círculo y pasa a rojo. Si le añades otro pase en esa sala, vuelve a verde.</span>
+          <span><strong style="color:var(--text);">Marrón</strong> — Sobra. Se pone solo, no se puede marcar a mano: la película está en verde en esa sala, ya se ha proyectado ahí y no le quedan más pases en ella (un pase cuenta como hecho 3 horas después de su hora de inicio). Avisa de que se puede borrar de ese servidor para hacer sitio. Cuando la borres, pulsa el círculo: pasa a rojo y se queda en rojo. Si más adelante le añades otro pase en esa sala, vuelve a azul.</span>
         </div>
         <div class="help-row" style="margin-top:8px;">
           <span style="font-size:0.82rem;margin-top:1px;">💡</span>
@@ -1867,7 +1867,7 @@
 
       <div class="help-credits">
         <strong>Ingestas Mostra — Cines Babel</strong><br>
-        Versión actual: <strong>v2.16</strong> · basada en Lista de Ingestas v1.18<br>
+        Versión actual: <strong>v2.17</strong> · basada en Lista de Ingestas v1.18<br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1933,7 +1933,7 @@
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>Mostra v2.16 · Diseño por Pablo Goitia</footer>
+<footer>Mostra v2.17 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1982,9 +1982,11 @@
 // · v2.14: "Sobra" pasa de naranja a marrón, que se distingue mejor.
 // · v2.15: exportar el calendario a PDF (un día por página) y CSV, con rango de días y salas.
 // · v2.16: al exportar se puede elegir qué datos mostrar.
+// · v2.17: al pulsar el marrón (Sobra) se queda en rojo (guardado como
+//   «borrada») y no vuelve a azul. Un pase deja de contar 3 h después de empezar.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = "mostra-v2.16";
+const APP_VERSION = "mostra-v2.17";
 const TABLE       = "mostra_peliculas";
 const LS = {
   rows:   "mostra_rows",
@@ -3791,16 +3793,20 @@ function cycleProj(id, idx) {
   // Se cicla sobre lo que se VE (una sala roja con pase se ve azul):
   //   azul con pase → amarillo → verde → azul (vuelve a "falta" mientras haya pase)
   //   sin pase:  rojo → amarillo → verde → rojo ·  azul/morado → rojo
-  //   marrón (Sobra) → rojo: ya se ha borrado del servidor
+  //   marrón (Sobra) → rojo que se queda: se guarda como «borrada»
   const visto = estadoSala(row, idx);
-  if (visto === 3 && necesitaSala(row, idx)) {
+  if (!row.projErr) row.projErr = ["","","","",""];
+  if (visto === 5) {
+    row.proj[idx] = PROJ_BORRADA;
+    row.projErr[idx] = "";
+  } else if (visto === 3 && necesitaSala(row, idx)) {
     row.proj[idx] = 1;
   } else if (visto >= 3) {
     row.proj[idx] = 0;
-    if (!row.projErr) row.projErr = ["","","","",""];
     row.projErr[idx] = "";
   } else {
-    row.proj[idx] = (row.proj[idx] + 1) % 3;
+    const base = row.proj[idx] === PROJ_BORRADA ? 0 : row.proj[idx];
+    row.proj[idx] = (base + 1) % 3;
   }
   render(); scheduleSave(id);
 }
@@ -4093,16 +4099,23 @@ function pasesOrdenados(row) {
     (a.fecha || "9999").localeCompare(b.fecha || "9999") ||
     (a.hora  || "99:99").localeCompare(b.hora || "99:99"));
 }
+// ¿El pase está aún por hacerse? (v2.17) Se da por terminado 3 horas
+// después de su hora de inicio; sin hora, al acabar el día. Un pase sin
+// fecha cuenta siempre como pendiente.
+function pasePendiente(p) {
+  if (!p.fecha) return true;
+  const ini = fechaLocal(p.fecha, p.hora || "23:59");
+  if (!ini) return true;
+  return ini.getTime() + (p.hora ? MARGEN_PASE_MS : 0) > Date.now();
+}
 function proximoPase(row) {
-  const hoy = hoyStr();
-  return pasesOrdenados(row).find(p => p.fecha && p.fecha >= hoy) || null;
+  return pasesOrdenados(row).find(p => p.fecha && pasePendiente(p)) || null;
 }
 
-// Salas en las que hace falta la película: las que tienen un pase hoy o
-// más adelante. En la lista se marcan en azul.
+// Salas en las que hace falta la película: las que tienen un pase que aún
+// no ha terminado. En la lista se marcan en azul.
 function pasesFuturosEnSala(row, s) {
-  const hoy = hoyStr();
-  return pasesOrdenados(row).filter(p => p.sala === s && (!p.fecha || p.fecha >= hoy));
+  return pasesOrdenados(row).filter(p => p.sala === s && pasePendiente(p));
 }
 function necesitaSala(row, s) {
   return !row.isEmpty && pasesFuturosEnSala(row, s).length > 0;
@@ -4119,28 +4132,30 @@ function tipNecesitaSala(row, s) {
 // ordenadores, aparece al poner el pase y desaparece al quitarlo, moverlo
 // o cuando el pase ya ha pasado. Si la sala está copiando, lista o con
 // error, se ve tal cual.
+//
+// Guardado 6 = BORRADA (v2.17): se pulsó el marrón para marcar que ya se ha
+// borrado del servidor. Se ve en rojo y ya no vuelve a salir marrón; si
+// se le pone otro pase en esa sala, vuelve a azul (hay que copiarla otra vez).
+const PROJ_BORRADA = 6;
 function estadoSala(row, s) {
   const p = (row.proj || [])[s] || 0;
-  if (p === 0 && necesitaSala(row, s)) return 3;   // azul: Falta
-  if (p === 2 && sobraSala(row, s))    return 5;   // marrón: Sobra
+  if (p === 4) return 4;                                        // morado: Error
+  if (p === PROJ_BORRADA) return necesitaSala(row, s) ? 3 : 0;  // borrada → rojo
+  if (p === 2 && sobraSala(row, s)) return 5;                  // marrón: Sobra
+  if (p === 0 && necesitaSala(row, s)) return 3;                // azul: Falta
   return p;
 }
 
-// SOBRA (v2.13) · marrón, también automático y tampoco se guarda.
+// SOBRA (v2.13) · marrón, automático y no se guarda.
 // La película está copiada en esa sala (verde) y ya se ha proyectado ahí:
-// tenía pases en esa sala, todos han terminado y no le queda ninguno.
-// Avisa de que se puede borrar del servidor para hacer sitio. Se da por
-// terminado un pase 3 horas después de su hora de inicio (sin hora: al
-// acabar el día). Si se le añade otro pase en esa sala, vuelve a verde.
+// tenía pases con fecha ahí, todos han terminado y no le queda ninguno
+// pendiente. Avisa de que se puede borrar del servidor. Si se le añade
+// otro pase en esa sala, vuelve a verde.
 function sobraSala(row, s) {
   if (row.isEmpty) return false;
-  const ps = (row.pases || []).filter(p => p.sala === s && p.fecha);
-  if (!ps.length) return false;
-  const ahora = Date.now();
-  return ps.every(p => {
-    const ini = fechaLocal(p.fecha, p.hora || "23:59");
-    return ini && ini.getTime() + (p.hora ? MARGEN_PASE_MS : 0) <= ahora;
-  });
+  const ps = (row.pases || []).filter(p => p.sala === s);
+  if (!ps.some(p => p.fecha)) return false;
+  return !ps.some(pasePendiente);
 }
 function estadosSalas(row) {
   return SALAS.map(s => estadoSala(row, s));
@@ -4336,7 +4351,8 @@ function estadoPase(row, pase) {
   const s = pase.sala;
   if (!arch.probado) motivos.push("Archivo sin probar");
   const p = estadoSala(row, s);
-  if (p !== 2 && p !== 4 && p !== 5) motivos.push(`${PROJ_LABELS[p]} en S${s + 1}`);
+  const borrada = (row.proj || [])[s] === PROJ_BORRADA && !pasePendiente(pase);
+  if (p !== 2 && p !== 4 && p !== 5 && !borrada) motivos.push(`${PROJ_LABELS[p]} en S${s + 1}`);
   if (!pase.hora) motivos.push("Falta la hora");
 
   const enc = row.enc || 0;

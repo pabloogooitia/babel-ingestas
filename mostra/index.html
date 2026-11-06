@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ingestas Mostra — Cines Babel · v2.14</title>
+  <title>Ingestas Mostra — Cines Babel · v2.16</title>
   <!-- Icono propio de la Mostra: mostra-icon.png, en esta misma carpeta
        (mostra/), junto al HTML. Se usa como favicon, icono de la app en iOS
        y logo de la cabecera. El ?v=1 evita que el navegador se quede con una
@@ -1047,6 +1047,48 @@
     }
     .cal-vacio strong { color: var(--text); }
 
+    /* Exportar el calendario (v2.15) */
+    .btn-exportar {
+      flex-shrink: 0; cursor: pointer; white-space: nowrap;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.7rem; font-weight: 700;
+      color: var(--accent); background: var(--accent-soft);
+      border: 1.5px solid rgba(63,127,240,0.2); border-radius: 9px; padding: 7px 14px;
+      transition: all 0.15s;
+    }
+    .btn-exportar:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .modal.exp-modal { width: 540px; max-width: 96vw; padding: 20px 22px 22px; }
+    .exp-bloque { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .exp-formatos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .exp-fmt {
+      display: flex; flex-direction: column; gap: 3px; text-align: left; cursor: pointer;
+      background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px;
+      font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text2); transition: all 0.15s;
+    }
+    .exp-fmt strong { font-size: 0.82rem; color: var(--text); }
+    .exp-fmt span { font-size: 0.66rem; line-height: 1.4; }
+    .exp-fmt:hover { border-color: var(--accent); }
+    .exp-fmt.on { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); }
+    .exp-rango { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .exp-rango label { display: flex; flex-direction: column; gap: 4px; font-size: 0.62rem; font-weight: 700; color: var(--text2); }
+    .exp-sel { width: 100%; }
+    .exp-rapidos { display: flex; gap: 6px; flex-wrap: wrap; }
+    .exp-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 10px; }
+    .exp-campo {
+      display: flex; align-items: center; gap: 7px; text-align: left; cursor: pointer;
+      background: none; border: none; padding: 3px 2px;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.7rem; font-weight: 500; color: var(--text3);
+    }
+    .exp-campo.on { color: var(--text); }
+    .exp-check {
+      width: 15px; height: 15px; flex-shrink: 0; border-radius: 4px;
+      border: 1.5px solid var(--border); display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.6rem; font-weight: 800; color: #fff;
+    }
+    .exp-campo.on .exp-check { background: var(--accent); border-color: var(--accent); }
+    .exp-pie { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: 14px; }
+    .exp-resumen { font-size: 0.7rem; color: var(--text2); font-weight: 600; }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+
     /* Ventana de la película (desde el calendario) */
     .modal.cal-modal { width: 1060px; max-width: 96vw; max-height: 92vh; overflow-y: auto; padding: 20px 22px 22px; }
     .cal-modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 14px; }
@@ -1658,6 +1700,10 @@
         </div>
         <div class="help-row">
           <span style="font-size:0.82rem;margin-top:1px;">🗂</span>
+          <span><strong style="color:var(--text);">⤓ Exportar</strong> — Abre una ventana para descargar el calendario: en <strong style="color:var(--text);">PDF</strong> (una página A4 apaisada por día, con las salas en columnas, lista para imprimir) o en <strong style="color:var(--text);">CSV</strong> (una fila por pase, para Excel). Eliges el rango de días (desde / hasta, o los atajos «Todo el festival», «Solo este día» y «De hoy en adelante»), qué salas incluir y qué datos mostrar (sección, presentación / coloquio, archivo, disco, KDM, formato, qué falta, colores de estado y notas): por ejemplo, para la hoja de cabina se puede quitar «Qué falta». Lo que elijas se recuerda en cada ordenador. El PDF necesita internet la primera vez que se usa, para cargar el generador.</span>
+        </div>
+        <div class="help-row">
+          <span style="font-size:0.82rem;margin-top:1px;">🗂</span>
           <span>Cinco columnas, una por sala, con los pases ordenados por hora. Cada pase enseña la película, el archivo elegido, el disco y la KDM. Pulsa un pase para abrir la película; con <strong style="color:var(--text);">+ Añadir pase</strong> al pie de cada sala eliges una película y se crea el pase en ese día y esa sala.</span>
         </div>
         <div class="help-row">
@@ -1821,7 +1867,7 @@
 
       <div class="help-credits">
         <strong>Ingestas Mostra — Cines Babel</strong><br>
-        Versión actual: <strong>v2.14</strong> · basada en Lista de Ingestas v1.18<br>
+        Versión actual: <strong>v2.16</strong> · basada en Lista de Ingestas v1.18<br>
         Diseño y desarrollo por <strong>Pablo Goitia</strong>
       </div>
 
@@ -1880,10 +1926,14 @@
   <option value="Gala"/>
 </datalist>
 
+<div class="modal-overlay" id="expModal" onclick="if(event.target===this)cerrarExportar()">
+  <div class="modal exp-modal"><div id="expBody"></div></div>
+</div>
+
 <div class="toast" id="toast"></div>
 <div class="popover" id="popover"></div>
 
-<footer>Mostra v2.14 · Diseño por Pablo Goitia</footer>
+<footer>Mostra v2.16 · Diseño por Pablo Goitia</footer>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1930,9 +1980,11 @@
 // · v2.12: versión en la cabecera; "Remoto" se oculta si no hay ninguna.
 // · v2.13: estado automático "Sobra": ya proyectada, se puede borrar.
 // · v2.14: "Sobra" pasa de naranja a marrón, que se distingue mejor.
+// · v2.15: exportar el calendario a PDF (un día por página) y CSV, con rango de días y salas.
+// · v2.16: al exportar se puede elegir qué datos mostrar.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = "mostra-v2.14";
+const APP_VERSION = "mostra-v2.16";
 const TABLE       = "mostra_peliculas";
 const LS = {
   rows:   "mostra_rows",
@@ -4632,6 +4684,7 @@ function renderCalendario() {
     <div class="cal-top">
       <div class="cal-dias">${pestañas}</div>
       ${irA}
+      <button class="btn-exportar" onclick="abrirExportar()" title="Descargar el calendario en PDF o CSV">⤓ Exportar</button>
     </div>
     <div class="cal-resumen">${fmtDiaLargo(dia)}
       <span>${delDia.length} pase${delDia.length !== 1 ? "s" : ""}</span>${resumenPillsHTML(contarNiveles(delDia))}${(() => {
@@ -4698,6 +4751,494 @@ function renderCalModal() {
     </div>
     ${detallePanelHTML(row, "c")}`;
   ov.classList.add("open");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EXPORTAR EL CALENDARIO (v2.15)
+//   · PDF: una página A4 apaisada por día, con las 5 salas en columnas.
+//          Se genera en el navegador con jsPDF, que se descarga de internet
+//          solo la primera vez que se exporta (no ralentiza la página).
+//   · CSV: una fila por pase, separado por ";" para que Excel en castellano
+//          lo abra directamente en columnas.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const JSPDF_URL = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+
+function cargarJsPDF() {
+  if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve();
+  if (cargarJsPDF._p) return cargarJsPDF._p;
+  cargarJsPDF._p = new Promise((ok, ko) => {
+    const s = document.createElement("script");
+    s.src = JSPDF_URL;
+    s.onload = () => (window.jspdf && window.jspdf.jsPDF) ? ok() : ko(new Error("jsPDF no disponible"));
+    s.onerror = () => { cargarJsPDF._p = null; ko(new Error("sin conexión")); };
+    document.head.appendChild(s);
+  });
+  return cargarJsPDF._p;
+}
+
+// Días que tienen algún pase, en orden
+function diasConPases() {
+  const set = new Set();
+  rows.forEach(r => { if (!r.isEmpty) (r.pases || []).forEach(p => { if (p.fecha) set.add(p.fecha); }); });
+  return [...set].sort();
+}
+
+function hoyArchivo() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+function descargarArchivo(nombre, contenido, tipo) {
+  const blob = contenido instanceof Blob ? contenido : new Blob([contenido], { type: tipo });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = nombre;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+const TEXTO_NIVEL = { conf: "Confirmada", ok: "En orden, sin confirmar", warn: "Falta algo", bad: "Sin archivo elegido", err: "Error" };
+
+function textoSoporte(row) {
+  if (row.fmt === 3) return row.otroText || "Otro";
+  return row.fmt ? FMT_STATES[row.fmt].label : "";
+}
+function textoFormato(row) {
+  if (row.fmt2 === 3) return row.fmt2OtroText || "Otro";
+  return row.fmt2 ? FMT2_STATES[row.fmt2].label : "";
+}
+function textoKdm(row) {
+  if ((row.enc || 0) !== 2) return "";
+  const k = kdmLeer(row);
+  const salas = SALAS.filter(s => k.salas[s]).map(s => "S" + (s + 1)).join(" ");
+  const d = fechaHoraLocal(k.desde), h = fechaHoraLocal(k.hasta);
+  return [salas ? "para " + salas : "pendiente", d ? "desde " + fmtFechaHora(d) : "", h ? "hasta " + fmtFechaHora(h) : ""]
+    .filter(Boolean).join(" · ");
+}
+
+// ── CSV ────────────────────────────────────────────────────────────────────
+
+function exportarCSV(dias, salas) {
+  const enDias = new Set(dias), enSalas = new Set(salas);
+  const pases = [];
+  rows.forEach(r => {
+    if (r.isEmpty) return;
+    (r.pases || []).forEach(p => {
+      if (enDias.has(p.fecha) && enSalas.has(p.sala)) pases.push({ row: r, pase: p, est: estadoPase(r, p) });
+    });
+  });
+  if (!pases.length) { showToast("No hay pases que exportar"); return; }
+  pases.sort((a, b) =>
+    (a.pase.fecha || "9").localeCompare(b.pase.fecha || "9") ||
+    (a.pase.hora || "99:99").localeCompare(b.pase.hora || "99:99") ||
+    a.pase.sala - b.pase.sala);
+
+  // Columnas: [título, grupo de "Mostrar" (o null = siempre), valor]
+  const columnas = [
+    ["Fecha", null, (r, p) => { const f = fechaLocal(p.fecha); return f ? `${pad2(f.getDate())}/${pad2(f.getMonth() + 1)}/${f.getFullYear()}` : ""; }],
+    ["Día", null, (r, p) => { const f = fechaLocal(p.fecha); return f ? DIAS_LARGOS[f.getDay()] : ""; }],
+    ["Hora", null, (r, p) => p.hora || ""],
+    ["Sala", null, (r, p) => "Sala " + (p.sala + 1)],
+    ["Película", null, r => r.pelicula],
+    ["Sección", "seccion", r => r.categoria || ""],
+    ["Acto", "acto", (r, p) => p.etiqueta || ""],
+    ["Archivo a proyectar", "archivo", r => { const a = archivoAProyectar(r); return a ? a.nombre : ""; }],
+    ["Archivo probado", "archivo", r => { const a = archivoAProyectar(r); return a ? (a.probado ? "Sí" : "No") : ""; }],
+    ["Soporte / disco", "soporte", r => textoSoporte(r)],
+    ["Encriptación", "kdm", r => ENC_STATES[r.enc || 0].key === "blank" ? "" : ENC_STATES[r.enc || 0].label],
+    ["KDM", "kdm", r => textoKdm(r)],
+    ["Formato", "formato", r => textoFormato(r)],
+    ["Estado en la sala", "estado", (r, p) => PROJ_LABELS[estadoSala(r, p.sala)]],
+    ["Estado del pase", "estado", (r, p, e) => TEXTO_NIVEL[e.nivel]],
+    ["Qué falta", "estado", (r, p, e) => e.motivos.join(" · ")],
+    ["Confirmada por", "estado", r => r.confirmada ? `${r.confirmada.por || ""} ${fmtFechaHora(new Date(r.confirmada.fecha))}`.trim() : ""],
+    ["Notas", "notas", r => r.notas || ""],
+  ].filter(c => !c[1] || ver[c[1]]);
+  const cab = columnas.map(c => c[0]);
+  const celda = v => {
+    const t = String(v == null ? "" : v);
+    return /[";\n\r]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+  };
+  const lineas = [cab.map(celda).join(";")];
+  pases.forEach(({ row, pase, est }) => {
+    lineas.push(columnas.map(c => c[2](row, pase, est)).map(celda).join(";"));
+  });
+  // El BOM del principio hace que Excel lea bien las tildes
+  descargarArchivo(`mostra-calendario-${nombreRango(dias)}.csv`, "\ufeff" + lineas.join("\r\n"), "text/csv;charset=utf-8");
+  showToast(`CSV descargado · ${pases.length} pases`);
+}
+
+// ── PDF ────────────────────────────────────────────────────────────────────
+
+// Las fuentes básicas de los PDF solo tienen caracteres latinos: se cambian
+// comillas tipográficas, rayas, etc. por su equivalente sencillo.
+function pdfTxt(s) {
+  return String(s == null ? "" : s)
+    .replace(/[‘’‚′]/g, "'").replace(/[“”„″]/g, '"')
+    .replace(/[–—−]/g, "-").replace(/…/g, "...").replace(/•/g, "·")
+    .replace(/[   ]/g, " ")
+    .normalize("NFC")
+    .replace(/[^\x00-\xFF]/g, "?");
+}
+
+const PDF_COLOR = {
+  conf: [34, 197, 94], ok: [34, 197, 94], warn: [217, 119, 6], bad: [220, 38, 38], err: [139, 92, 246],
+  texto: [20, 28, 46], gris: [107, 122, 153], claro: [176, 188, 212], linea: [222, 228, 238],
+  fondo: [246, 248, 252], acto: [219, 39, 119], granate: [43, 14, 24], coral: [232, 85, 63],
+};
+const PDF_SECCION = { oficial: [99, 102, 241], cabina: [20, 184, 166], xaloc: [249, 115, 22], carta: [148, 163, 184], mostreta: [132, 204, 22], otra: [176, 188, 212] };
+
+async function exportarPDF(dias, salas) {
+  if (!dias.length || !salas.length) { showToast("No hay nada que exportar"); return; }
+  showToast("Preparando el PDF…");
+  try { await cargarJsPDF(); }
+  catch (e) { showToast("⚠ No se pudo cargar el generador de PDF. Comprueba la conexión a internet."); return; }
+
+  const doc = new window.jspdf.jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const W = 297, H = 210, M = 10;
+  const generado = fmtFechaHora(new Date());
+
+  dias.forEach((dia, n) => {
+    if (n > 0) doc.addPage();
+    dibujarDiaPDF(doc, dia, { W, H, M, salas, pagina: n + 1, total: dias.length, generado });
+  });
+
+  doc.save(`mostra-calendario-${nombreRango(dias)}.pdf`);
+  showToast(`PDF descargado · ${dias.length} día${dias.length !== 1 ? "s" : ""}`);
+}
+
+function dibujarDiaPDF(doc, dia, o) {
+  const { W, H, M } = o;
+  const C = PDF_COLOR;
+  const mm = pt => pt * 0.3528;               // puntos → milímetros
+  const salas = o.salas;
+  const delDia = pasesDelDia(dia).filter(x => salas.includes(x.pase.sala));
+  const cuenta = contarNiveles(delDia);
+
+  // ── Cabecera ──
+  doc.setFillColor(...C.granate); doc.rect(0, 0, W, 20, "F");
+  doc.setFillColor(...C.coral);   doc.rect(0, 20, W, 1.2, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+  doc.text(pdfTxt("CINES BABEL · MOSTRA DE VALÈNCIA · CALENDARIO DE PASES"), M, 7.5);
+  doc.setFontSize(16);
+  doc.text(pdfTxt(fmtDiaLargo(dia)), M, 15.5);
+  const res = [`${delDia.length} pase${delDia.length !== 1 ? "s" : ""}`];
+  if (ver.estado || ver.colores) {
+  if (cuenta.conf) res.push(`${cuenta.conf} confirmado${cuenta.conf !== 1 ? "s" : ""}`);
+  if (cuenta.ok)   res.push(`${cuenta.ok} en orden`);
+  if (cuenta.warn) res.push(`${cuenta.warn} a medias`);
+  if (cuenta.bad)  res.push(`${cuenta.bad} sin archivo`);
+  if (cuenta.err)  res.push(`${cuenta.err} con error`);
+  }
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
+  doc.text(pdfTxt(res.join("  ·  ")), W - M, 15.5, { align: "right" });
+
+  // ── Columnas ──
+  const top = 26, bottom = H - 11, gap = 3;
+  const nCol = salas.length;
+  const colW = (W - 2 * M - gap * (nCol - 1)) / nCol;
+  const porSala = salas.map(s => delDia.filter(x => x.pase.sala === s));
+
+  // Mide y, si no cabe, reduce el tamaño de todo hasta que quepa
+  let escala = 1, bloques;
+  for (let intento = 0; intento < 6; intento++) {
+    bloques = porSala.map(lista => lista.map(x => medirPasePDF(doc, x, colW, escala)));
+    const alto = Math.max(...bloques.map(l => l.reduce((t, b) => t + b.h + 2.2 * escala, 0)), 0);
+    const disponible = bottom - (top + 8);
+    if (alto <= disponible || escala <= 0.5) break;
+    escala = Math.max(0.5, escala * disponible / alto * 0.98);
+  }
+
+  salas.forEach((s, ci) => {
+    const x = M + ci * (colW + gap);
+    doc.setFillColor(...C.fondo); doc.setDrawColor(...C.linea); doc.setLineWidth(0.2);
+    doc.roundedRect(x, top, colW, bottom - top, 2, 2, "FD");
+    doc.setTextColor(...C.gris); doc.setFont("helvetica", "bold"); doc.setFontSize(8);
+    doc.text(`SALA ${s + 1}`, x + 3, top + 5.2);
+    if (porSala[ci].length) doc.text(String(porSala[ci].length), x + colW - 3, top + 5.2, { align: "right" });
+    let y = top + 8;
+    if (!bloques[ci].length) {
+      doc.setFont("helvetica", "normal"); doc.setTextColor(...C.claro); doc.setFontSize(8);
+      doc.text("Sin pases", x + colW / 2, y + 6, { align: "center" });
+    }
+    bloques[ci].forEach(b => { b.dibujar(x + 1.5, y); y += b.h + 2.2 * escala; });
+  });
+
+  // ── Pie: leyenda y página ──
+  let lx = M; const ly = H - 5.5;
+  doc.setFont("helvetica", "normal"); doc.setFontSize(7);
+  (ver.colores ? [["conf", "Confirmada"], ["ok", "En orden, sin confirmar"], ["warn", "Falta algo"], ["bad", "Sin archivo elegido"], ["err", "Error en alguna sala"]] : [])
+    .forEach(([k, t]) => {
+      doc.setFillColor(...C[k]); doc.rect(lx, ly - 2.3, 1.6, 2.8, "F");
+      doc.setTextColor(...C.gris); doc.text(pdfTxt(t), lx + 2.8, ly);
+      lx += 2.8 + doc.getTextWidth(pdfTxt(t)) + 6;
+    });
+  if (ver.acto) {
+    doc.setFillColor(...C.acto); doc.rect(lx, ly - 2.3, 4, 2.8, "F");
+    doc.setTextColor(...C.gris); doc.text("Presentación / coloquio", lx + 5.2, ly);
+  }
+  doc.setTextColor(...C.claro);
+  doc.text(pdfTxt(`Generado el ${o.generado} · Página ${o.pagina} de ${o.total}`), W - M, ly, { align: "right" });
+}
+
+// Calcula el alto de un pase y devuelve cómo dibujarlo
+function medirPasePDF(doc, { row, pase, est }, colW, k) {
+  const C = PDF_COLOR;
+  const mm = pt => pt * 0.3528;
+  const w = colW - 3;                 // ancho de la tarjeta
+  const tx = 3.2;                     // sangría del texto (tras la barra de color)
+  const tw = w - tx - 2;              // ancho útil del texto
+  const pad = 2 * k;
+  const partes = [];                  // [{ alto, pintar(x, y) }]
+
+  const fs = v => v * k;
+  const lh = v => mm(fs(v)) * 1.22;
+
+  // Hora + sección
+  partes.push({ alto: lh(10.5), pintar: (x, y) => {
+    doc.setFont("helvetica", "bold"); doc.setFontSize(fs(10.5)); doc.setTextColor(...(pase.hora ? C.texto : C.claro));
+    doc.text(pase.hora || "--:--", x, y + mm(fs(10.5)) * 0.85);
+    if (row.categoria && ver.seccion) {
+      const cls = claseSeccion(row.categoria);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(fs(6)); doc.setTextColor(...C.gris);
+      const t = pdfTxt(row.categoria.toUpperCase());
+      const tW = doc.getTextWidth(t);
+      doc.text(t, x + tw, y + mm(fs(10.5)) * 0.8, { align: "right" });
+      doc.setFillColor(...(PDF_SECCION[cls] || C.claro));
+      doc.circle(x + tw - tW - 1.6, y + mm(fs(10.5)) * 0.8 - mm(fs(6)) * 0.33, 0.8 * k, "F");
+    }
+  }});
+
+  // Título
+  doc.setFont("helvetica", "bold"); doc.setFontSize(fs(9));
+  const tit = doc.splitTextToSize(pdfTxt(row.pelicula), tw);
+  partes.push({ alto: tit.length * lh(9) + 0.6 * k, pintar: (x, y) => {
+    doc.setFont("helvetica", "bold"); doc.setFontSize(fs(9)); doc.setTextColor(...C.texto);
+    tit.forEach((l, i) => doc.text(l, x, y + mm(fs(9)) * 0.85 + i * lh(9)));
+  }});
+
+  // Acto (franja rosa)
+  if (ver.acto && actoDe(pase)) {
+    doc.setFont("helvetica", "bold"); doc.setFontSize(fs(7.5));
+    const ac = doc.splitTextToSize(pdfTxt(pase.etiqueta), tw - 3);
+    const alto = ac.length * lh(7.5) + 2 * k;
+    partes.push({ alto: alto + 1 * k, pintar: (x, y) => {
+      doc.setFillColor(...C.acto); doc.roundedRect(x - 0.5, y, tw + 0.5, alto, 1, 1, "F");
+      doc.setFont("helvetica", "bold"); doc.setFontSize(fs(7.5)); doc.setTextColor(255, 255, 255);
+      ac.forEach((l, i) => doc.text(l, x + 1.2, y + 1 * k + mm(fs(7.5)) * 0.85 + i * lh(7.5)));
+    }});
+  }
+
+  // Archivo a proyectar
+  const arch = archivoAProyectar(row);
+  if (ver.archivo && arch && arch.nombre) {
+    doc.setFont("courier", "normal"); doc.setFontSize(fs(6.3));
+    let al = doc.splitTextToSize(pdfTxt(arch.nombre), tw - (arch.probado ? 7 : 3));
+    if (al.length > 2) al = [al[0], al[1].slice(0, Math.max(0, al[1].length - 3)) + "..."];
+    partes.push({ alto: al.length * lh(6.3) + 0.6 * k, pintar: (x, y) => {
+      doc.setFont("helvetica", "bold"); doc.setFontSize(fs(6.3)); doc.setTextColor(63, 127, 240);
+      doc.text(">", x, y + mm(fs(6.3)) * 0.85);
+      doc.setFont("courier", "normal"); doc.setTextColor(...C.gris);
+      al.forEach((l, i) => doc.text(l, x + 2.2, y + mm(fs(6.3)) * 0.85 + i * lh(6.3)));
+      if (arch.probado) {
+        doc.setFont("helvetica", "bold"); doc.setTextColor(...C.ok);
+        doc.text("OK", x + tw, y + mm(fs(6.3)) * 0.85 + (al.length - 1) * lh(6.3), { align: "right" });
+      }
+    }});
+  }
+
+  // Disco · encriptación/KDM · formato
+  const datos = [ver.soporte ? textoSoporte(row) : "",
+    !ver.kdm ? "" : (row.enc || 0) === 1 ? "Libre" : (row.enc || 0) === 2 ? ((kdmEstado(row) || {}).texto || "KDM") : "",
+    ver.formato ? textoFormato(row) : ""].filter(Boolean).join("  ·  ");
+  if (datos) {
+    doc.setFont("helvetica", "normal"); doc.setFontSize(fs(6.8));
+    const dl = doc.splitTextToSize(pdfTxt(datos), tw);
+    partes.push({ alto: dl.length * lh(6.8), pintar: (x, y) => {
+      doc.setFont("helvetica", "normal"); doc.setFontSize(fs(6.8)); doc.setTextColor(...C.gris);
+      dl.forEach((l, i) => doc.text(l, x, y + mm(fs(6.8)) * 0.85 + i * lh(6.8)));
+    }});
+  }
+
+  // Notas
+  if (ver.notas && (row.notas || "").trim()) {
+    doc.setFont("helvetica", "italic"); doc.setFontSize(fs(6.6));
+    const nl = doc.splitTextToSize(pdfTxt(row.notas.trim()), tw);
+    partes.push({ alto: nl.length * lh(6.6), pintar: (x, y) => {
+      doc.setFont("helvetica", "italic"); doc.setFontSize(fs(6.6)); doc.setTextColor(...C.gris);
+      nl.forEach((l, i) => doc.text(l, x, y + mm(fs(6.6)) * 0.85 + i * lh(6.6)));
+    }});
+  }
+
+  // Estado
+  if (ver.estado) {
+    const estado = est.nivel === "conf" ? "Confirmada" : est.nivel === "ok" ? "En orden · sin confirmar" : est.motivos.join(" · ");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(fs(6.8));
+    const el = doc.splitTextToSize(pdfTxt(estado), tw);
+    partes.push({ alto: el.length * lh(6.8) + 0.5 * k, pintar: (x, y) => {
+      doc.setFont("helvetica", "bold"); doc.setFontSize(fs(6.8));
+      doc.setTextColor(...(ver.colores ? C[est.nivel] : C.gris));
+      el.forEach((l, i) => doc.text(l, x, y + 0.6 * k + mm(fs(6.8)) * 0.85 + i * lh(6.8)));
+    }});
+  }
+
+  const sep = 0.7 * k;
+  const h = pad * 2 + partes.reduce((t, p) => t + p.alto, 0) + sep * (partes.length - 1);
+  return {
+    h,
+    dibujar: (x, y) => {
+      doc.setFillColor(255, 255, 255); doc.setDrawColor(...C.linea); doc.setLineWidth(0.2);
+      doc.roundedRect(x, y, w, h, 1.4, 1.4, "FD");
+      doc.setFillColor(...(ver.colores ? C[est.nivel] : C.linea)); doc.rect(x, y, 1.6, h, "F");
+      if (ver.colores && est.nivel === "conf") { doc.setFillColor(236, 253, 243); doc.rect(x + 1.6, y + 0.1, w - 1.7, h - 0.2, "F"); }
+      if (ver.colores && est.nivel === "err")  { doc.setFillColor(245, 240, 255); doc.rect(x + 1.6, y + 0.1, w - 1.7, h - 0.2, "F"); }
+      let yy = y + pad;
+      partes.forEach(p => { p.pintar(x + tx, yy); yy += p.alto + sep; });
+    },
+  };
+}
+
+function nombreRango(dias) {
+  return dias.length === 1 ? dias[0] : `${dias[0]}_a_${dias[dias.length - 1]}`;
+}
+
+// ── MODAL DE EXPORTACIÓN ───────────────────────────────────────────────────
+// Todas las opciones juntas: formato, rango de días y salas.
+
+const exp = { formato: "pdf", desde: null, hasta: null, salas: [true, true, true, true, true] };
+
+// Qué datos salen en el PDF y en el CSV. Se recuerda en cada ordenador.
+const CAMPOS_EXPORT = [
+  { k: "seccion", t: "Sección" },
+  { k: "acto",    t: "Presentación / coloquio" },
+  { k: "archivo", t: "Archivo a proyectar" },
+  { k: "soporte", t: "Disco / soporte" },
+  { k: "kdm",     t: "Encriptación y KDM" },
+  { k: "formato", t: "Formato" },
+  { k: "estado",  t: "Qué falta (estado del pase)" },
+  { k: "colores", t: "Colores de estado" },
+  { k: "notas",   t: "Notas" },
+];
+const ver = {};
+CAMPOS_EXPORT.forEach(c => { ver[c.k] = true; });
+try { Object.assign(ver, JSON.parse(localStorage.getItem("mostra_exp_campos") || "{}")); } catch(e) {}
+function toggleCampo(k) {
+  ver[k] = !ver[k];
+  try { localStorage.setItem("mostra_exp_campos", JSON.stringify(ver)); } catch(e) {}
+  renderExportar();
+}
+
+function abrirExportar() {
+  const dias = diasConPases();
+  if (!dias.length) { showToast("Todavía no hay pases que exportar"); return; }
+  // Por defecto: el día que se está viendo (si tiene pases) o todo el festival
+  const visto = calDia && dias.includes(calDia) ? calDia : null;
+  exp.desde = visto || dias[0];
+  exp.hasta = visto || dias[dias.length - 1];
+  if (!exp.salas.some(Boolean)) exp.salas = [true, true, true, true, true];
+  renderExportar();
+  document.getElementById("expModal").classList.add("open");
+}
+function cerrarExportar() { document.getElementById("expModal").classList.remove("open"); }
+
+function diasDelRango() {
+  const dias = diasConPases();
+  let d = exp.desde, h = exp.hasta;
+  if (d > h) [d, h] = [h, d];
+  return dias.filter(x => x >= d && x <= h);
+}
+function salasElegidas() { return SALAS.filter(s => exp.salas[s]); }
+
+function setExp(campo, valor) {
+  if (campo === "sala") exp.salas[valor] = !exp.salas[valor];
+  else exp[campo] = valor;
+  renderExportar();
+}
+function rangoRapido(tipo) {
+  const dias = diasConPases(), hoy = hoyStr();
+  if (tipo === "todo")  { exp.desde = dias[0]; exp.hasta = dias[dias.length - 1]; }
+  if (tipo === "visto" && calDia && dias.includes(calDia)) { exp.desde = exp.hasta = calDia; }
+  if (tipo === "desdeHoy") {
+    const prox = dias.filter(d => d >= hoy);
+    if (!prox.length) { showToast("No quedan días con pases a partir de hoy"); return; }
+    exp.desde = prox[0]; exp.hasta = dias[dias.length - 1];
+  }
+  renderExportar();
+}
+
+function renderExportar() {
+  const body = document.getElementById("expBody");
+  if (!body) return;
+  const dias = diasConPases();
+  const elegidos = diasDelRango();
+  const salas = salasElegidas();
+  const nPases = elegidos.reduce((t, d) => t + pasesDelDia(d).filter(x => salas.includes(x.pase.sala)).length, 0);
+  const sel = (campo, valor) => `<select class="mini-input exp-sel" onchange="setExp('${campo}', this.value)">
+      ${dias.map(d => `<option value="${d}" ${d === valor ? "selected" : ""}>${escHtml(fmtDiaCorto(d))} · ${pasesDelDia(d).length} pases</option>`).join("")}
+    </select>`;
+  const puedeVisto = calDia && dias.includes(calDia);
+  const ok = elegidos.length && salas.length && nPases;
+
+  body.innerHTML = `
+    <div class="cal-modal-head">
+      <div><div class="cal-modal-eyebrow">Calendario de la Mostra</div><h2>Exportar</h2></div>
+      <button class="btn-secondary" onclick="cerrarExportar()" title="Cerrar (Esc)">✕</button>
+    </div>
+
+    <div class="exp-bloque">
+      <div class="side-label">Formato</div>
+      <div class="exp-formatos">
+        <button class="exp-fmt ${exp.formato === "pdf" ? "on" : ""}" onclick="setExp('formato','pdf')">
+          <strong>PDF</strong><span>Una página por día, con las salas en columnas. Para imprimir.</span></button>
+        <button class="exp-fmt ${exp.formato === "csv" ? "on" : ""}" onclick="setExp('formato','csv')">
+          <strong>CSV</strong><span>Una fila por pase, con todos los datos. Para Excel.</span></button>
+      </div>
+    </div>
+
+    <div class="exp-bloque">
+      <div class="side-label">Días</div>
+      <div class="exp-rango">
+        <label>Desde ${sel("desde", exp.desde)}</label>
+        <label>Hasta ${sel("hasta", exp.hasta)}</label>
+      </div>
+      <div class="exp-rapidos">
+        <button class="link-btn" onclick="rangoRapido('todo')">Todo el festival</button>
+        ${puedeVisto ? `<button class="link-btn" onclick="rangoRapido('visto')">Solo ${escHtml(fmtDiaCorto(calDia))}</button>` : ""}
+        <button class="link-btn" onclick="rangoRapido('desdeHoy')">De hoy en adelante</button>
+      </div>
+    </div>
+
+    <div class="exp-bloque">
+      <div class="side-label">Mostrar</div>
+      <div class="exp-campos">
+        ${CAMPOS_EXPORT.filter(c => !(c.k === "colores" && exp.formato === "csv")).map(c => `
+          <button class="exp-campo ${ver[c.k] ? "on" : ""}" onclick="toggleCampo('${c.k}')">
+            <span class="exp-check">${ver[c.k] ? "✓" : ""}</span>${c.t}</button>`).join("")}
+      </div>
+    </div>
+
+    <div class="exp-bloque">
+      <div class="side-label">Salas</div>
+      <div class="kdm-salas">
+        ${SALAS.map(s => `<button class="kdm-sala ${exp.salas[s] ? "on" : ""}" onclick="setExp('sala', ${s})">S${s + 1}</button>`).join("")}
+      </div>
+    </div>
+
+    <div class="exp-pie">
+      <span class="exp-resumen">${ok
+        ? `${elegidos.length} día${elegidos.length !== 1 ? "s" : ""} · ${nPases} pase${nPases !== 1 ? "s" : ""} · ${salas.length === 5 ? "todas las salas" : salas.map(s => "S" + (s + 1)).join(", ")}${exp.formato === "pdf" ? ` · ${elegidos.length} página${elegidos.length !== 1 ? "s" : ""}` : ""}`
+        : "No hay pases con esta selección"}</span>
+      <button class="btn-primary" ${ok ? "" : "disabled"} onclick="hacerExportacion()">Descargar ${exp.formato.toUpperCase()}</button>
+    </div>`;
+}
+
+function hacerExportacion() {
+  const dias = diasDelRango(), salas = salasElegidas();
+  cerrarExportar();
+  if (exp.formato === "csv") exportarCSV(dias, salas);
+  else exportarPDF(dias, salas);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4789,6 +5330,7 @@ function ocultarPopover() {
 // ATAJOS DE TECLADO
 // ═══════════════════════════════════════════════════════════════════════════
 document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && document.getElementById("expModal").classList.contains("open")) { cerrarExportar(); return; }
   if (e.key === "Escape" && calModalId !== null) { cerrarPelicula(); return; }
   const mod = e.ctrlKey || e.metaKey;
   const tecla = (e.key || "").toLowerCase();
